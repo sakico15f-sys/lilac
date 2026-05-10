@@ -907,7 +907,7 @@ function startTimer(){
   clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
     timeLeft--; updateRing(timeLeft);
-    if(timeLeft<=0){clearInterval(timerInterval);autoJudge();}
+    if(timeLeft<=0){clearInterval(timerInterval);timerInterval=null;autoJudge();}
   },1000);
 }
 
@@ -920,7 +920,7 @@ function updateRing(sec){
   fg.style.stroke=p>0.5?'var(--accent)':p>0.25?'#e8c060':'var(--ng)';
 }
 
-function stopTimer(){clearInterval(timerInterval);}
+function stopTimer(){clearInterval(timerInterval);timerInterval=null;}
 
 function initRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -936,22 +936,25 @@ function initRecognition(){
     currentTranscript=(currentTranscript+final).trim();
     showTranscript(currentTranscript+(interim?' '+interim:''));
   };
+  r.onaudiostart=()=>{
+    // Audio capture actually began — start the countdown only now so the
+    // permission dialog on first use doesn't eat into the answer window.
+    if(r===recognition&&isListening&&!timerInterval) startTimer();
+  };
   r.onerror=e=>{
-    if(e.error!=='no-speech') console.log('SR error:',e.error);
-    // not-allowed / service-not-allowed: iOS blocked start() → let user tap mic
-    if((e.error==='not-allowed'||e.error==='service-not-allowed')&&isListening&&!isJudging){
-      isListening=false;
+    if(e.error==='aborted') return;  // we called stop() ourselves
+    console.log('SR error:',e.error);
+    if(e.error!=='no-speech'&&isListening&&!isJudging){
+      // stopListening() also kills the timer, so it doesn't expire on a dead mic
+      stopListening();
       setMicState('idle');
     }
   };
   r.onend=()=>{
     if(r!==recognition||!isListening||isJudging) return;
-    // iOS Safari: try to restart within the same audio session.
-    // A small delay helps iOS release and re-acquire the audio path.
-    setTimeout(()=>{
-      if(r!==recognition||!isListening||isJudging) return;
-      try{r.start();}catch(e){isListening=false;setMicState('idle');}
-    },200);
+    // Restart immediately — no setTimeout, so iOS keeps this within the same
+    // audio session (a delay breaks the session and forces a new user gesture).
+    try{r.start();}catch(e){stopListening();setMicState('idle');}
   };
   return r;
 }
@@ -968,10 +971,13 @@ function startListening(){
   // Q2+ because the gesture context expires before the promise resolves.
   recognition=initRecognition();
   if(recognition){
-    try{recognition.start();}catch(e){}
-    setMicState('listening');
-    document.getElementById('retry-btn').disabled=false;
-    startTimer();
+    try{recognition.start();}catch(e){isListening=false;}
+    if(isListening){
+      setMicState('listening');
+      document.getElementById('retry-btn').disabled=false;
+      // Timer starts in onaudiostart so the permission dialog on first use
+      // doesn't consume the 12-second window before audio is actually captured.
+    }
   }
 
   // iOS Safari: getUserMedia competes with SpeechRecognition for the microphone,
