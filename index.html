@@ -922,6 +922,15 @@ function updateRing(sec){
 
 function stopTimer(){clearInterval(timerInterval);timerInterval=null;}
 
+function dbg(msg){
+  const txt=document.getElementById('transcript-txt');
+  const ph=document.getElementById('transcript-ph');
+  const box=document.getElementById('transcript-box');
+  txt.textContent='['+msg+']';
+  ph.style.display='none';
+  box.classList.add('active');
+}
+
 function initRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){alert('音声認識はSafariで開いてください。');return null;}
@@ -936,25 +945,25 @@ function initRecognition(){
     currentTranscript=(currentTranscript+final).trim();
     showTranscript(currentTranscript+(interim?' '+interim:''));
   };
-  r.onaudiostart=()=>{
-    // Audio capture actually began — start the countdown only now so the
-    // permission dialog on first use doesn't eat into the answer window.
+  r.onstart=()=>{
+    dbg('onstart');
     if(r===recognition&&isListening&&!timerInterval) startTimer();
   };
+  r.onaudiostart=()=>{
+    dbg('onaudiostart');
+  };
   r.onerror=e=>{
-    if(e.error==='aborted') return;  // we called stop() ourselves
-    console.log('SR error:',e.error);
+    dbg('onerror:'+e.error);
+    if(e.error==='aborted') return;
     if(e.error!=='no-speech'&&isListening&&!isJudging){
-      // stopListening() also kills the timer, so it doesn't expire on a dead mic
       stopListening();
       setMicState('idle');
     }
   };
   r.onend=()=>{
+    dbg('onend');
     if(r!==recognition||!isListening||isJudging) return;
-    // Restart immediately — no setTimeout, so iOS keeps this within the same
-    // audio session (a delay breaks the session and forces a new user gesture).
-    try{r.start();}catch(e){stopListening();setMicState('idle');}
+    try{r.start();}catch(e){dbg('restart-fail:'+e.message);stopListening();setMicState('idle');}
   };
   return r;
 }
@@ -971,12 +980,16 @@ function startListening(){
   // Q2+ because the gesture context expires before the promise resolves.
   recognition=initRecognition();
   if(recognition){
-    try{recognition.start();}catch(e){isListening=false;}
+    try{
+      recognition.start();
+      dbg('start()呼出し完了');
+    }catch(e){
+      isListening=false;
+      dbg('start()例外:'+e.message);
+    }
     if(isListening){
       setMicState('listening');
       document.getElementById('retry-btn').disabled=false;
-      // Timer starts in onaudiostart so the permission dialog on first use
-      // doesn't consume the 12-second window before audio is actually captured.
     }
   }
 
