@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lilac English</title>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;500;700&family=Montserrat:wght@700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ede7f8;--bg2:#e2d8f4;--card:#faf7ff;--card2:#f0eafc;
+  --accent:#7040d0;--accent2:#c044a0;--lavender:#9060d8;
+  --ok:#00d381;--good:#d07000;--ng:#d02858;--text:#18083a;--muted:#8878b4;--border:#cfc0ec;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter','M PLUS 1p',sans-serif;overflow:hidden;user-select:none}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;transition:opacity .28s,transform .28s}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateY(14px)}
+
+/* HOME */
+#home{overflow-y:auto;padding-bottom:50px}
+.home-hero{padding:56px 24px 16px;background:radial-gradient(ellipse at 70% 0%,rgba(144,96,216,.22),transparent 65%)}
+.app-title{font-family:'Montserrat',sans-serif;font-size:34px;font-weight:800;letter-spacing:.01em}
+.app-title .lilac{color:var(--accent2)}
+.app-title .english{color:var(--accent)}
+.app-sub{color:var(--muted);font-size:11px;margin-top:5px;letter-spacing:.18em;font-family:'Inter',sans-serif;font-weight:600}
+.sec-label{padding:18px 24px 8px;font-size:10px;color:var(--muted);letter-spacing:.2em;font-family:'Inter',sans-serif;font-weight:700}
+.mode-row{display:flex;gap:8px;padding:0 24px 4px}
+.mode-btn{flex:1;padding:11px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-size:12px;font-family:'Inter','M PLUS 1p',sans-serif;cursor:pointer;transition:all .2s}
+.mode-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(112,64,208,.1)}
+.random-btn{display:block;margin:14px 24px;padding:16px;border-radius:16px;background:linear-gradient(135deg,var(--lavender),var(--accent),var(--accent2));border:none;color:white;font-size:15px;font-family:'Inter','M PLUS 1p',sans-serif;font-weight:700;cursor:pointer;width:calc(100% - 48px);letter-spacing:.05em;box-shadow:0 6px 28px rgba(112,64,208,.32);transition:opacity .15s,transform .1s}
+.random-btn:active{opacity:.82;transform:scale(.97)}
+.chapter-list{padding:0 24px;display:flex;flex-direction:column;gap:10px}
+.chapter-block{background:var(--card);border-radius:16px;overflow:hidden;border:1px solid var(--border)}
+.chapter-head{padding:12px 16px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.16em;display:flex;align-items:center;gap:8px;font-family:'Inter',sans-serif}
+.chapter-head .badge{background:linear-gradient(135deg,var(--lavender),var(--accent2));color:white;font-size:10px;padding:2px 9px;border-radius:20px}
+.lesson-btn{width:100%;padding:13px 16px;background:none;border:none;border-top:1px solid var(--border);color:var(--accent);font-size:16px;font-family:'Inter','M PLUS 1p',sans-serif;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .1s}
+.lesson-btn:active{background:var(--card2)}
+.lesson-btn .cnt{font-size:11px;color:var(--muted);font-family:'Inter',sans-serif}
+
+/* QUIZ */
+#quiz{justify-content:flex-start}
+.quiz-topbar{display:flex;align-items:center;justify-content:space-between;padding:50px 20px 8px;flex-shrink:0}
+.back-btn{background:var(--card);border:1px solid var(--border);color:var(--text);font-size:16px;width:36px;height:36px;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.quiz-meta{font-family:'Inter',sans-serif;font-size:11px;color:var(--muted);text-align:right;line-height:1.7}
+.prog-wrap{height:3px;background:var(--border);margin:6px 20px 0;border-radius:3px;overflow:hidden;flex-shrink:0}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--lavender),var(--accent2));border-radius:3px;transition:width .4s ease}
+.quiz-scroll{flex:1;overflow-y:auto;padding:14px 20px 10px;display:flex;flex-direction:column;gap:12px}
+.lesson-tag{font-size:11px;color:var(--accent);font-family:'Inter',sans-serif;font-weight:600;letter-spacing:.1em}
+.jp-card{background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:18px;padding:24px 20px;position:relative;overflow:hidden}
+.jp-card::before{content:'';position:absolute;top:-30px;right:-30px;width:130px;height:130px;background:radial-gradient(circle,rgba(144,96,216,.12),transparent 70%);pointer-events:none}
+.jp-text{font-size:22px;font-weight:700;line-height:1.55;letter-spacing:.03em;font-family:'Inter','M PLUS 1p',sans-serif}
+
+/* MIC ZONE */
+.mic-zone{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:8px 20px 32px;gap:12px}
+.transcript-box{width:100%;min-height:46px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;font-size:16px;color:var(--text);line-height:1.5;font-style:italic;transition:border-color .3s;position:relative;font-family:'Inter','M PLUS 1p',sans-serif}
+.transcript-box.active{border-color:var(--accent);background:rgba(112,64,208,.06)}
+.transcript-ph{position:absolute;inset:0;display:flex;align-items:center;padding:0 14px;color:var(--muted);font-size:12px;font-style:normal;pointer-events:none;font-family:'Inter',sans-serif}
+.timer-ring{position:relative;width:108px;height:108px}
+.timer-ring svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--border);stroke-width:5}
+.ring-fg{fill:none;stroke:var(--accent);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .12s linear,stroke .4s}
+.timer-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.timer-sec{font-family:'Montserrat',sans-serif;font-size:30px;font-weight:700;line-height:1}
+.timer-unit{font-size:10px;color:var(--muted);letter-spacing:.1em;font-family:'Inter',sans-serif}
+.btn-row{display:flex;align-items:center;gap:14px}
+.side-btn{width:48px;height:48px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);color:var(--muted);font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.side-btn:active{background:var(--card2);color:var(--accent)}
+.side-btn:disabled{opacity:.3;pointer-events:none}
+.mic-btn{width:72px;height:72px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:26px;transition:all .2s}
+.mic-btn.idle{background:linear-gradient(135deg,var(--lavender),var(--accent2));box-shadow:0 4px 24px rgba(112,64,208,.36)}
+.mic-btn.listening{background:linear-gradient(135deg,#b03090,#d850b0);animation:mpulse 1.1s ease-out infinite}
+.mic-btn.judging{background:var(--card2);border:1.5px solid var(--border);opacity:.55;pointer-events:none}
+.mic-btn:active{transform:scale(.93)}
+@keyframes mpulse{0%{box-shadow:0 0 0 0 rgba(192,64,160,.45)}70%{box-shadow:0 0 0 18px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.mic-hint{font-size:11px;color:var(--muted);letter-spacing:.06em;font-family:'Inter',sans-serif}
+
+/* RESULT */
+#result-overlay{position:fixed;inset:0;background:rgba(20,8,50,.78);display:flex;align-items:flex-end;justify-content:center;z-index:200;transition:opacity .28s}
+#result-overlay.hidden{opacity:0;pointer-events:none}
+.result-sheet{background:var(--card);border:1px solid var(--border);border-radius:28px 28px 0 0;padding:24px 22px 40px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;position:relative}
+.result-sheet::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(144,96,216,.14),transparent 70%);pointer-events:none}
+.drag-handle{width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto -2px}
+.result-badge{display:flex;align-items:center;gap:12px}
+.result-icon{font-size:30px;line-height:1;font-family:'Montserrat',sans-serif;font-weight:800;-webkit-text-stroke:5px currentColor}
+.result-verdict{font-family:'Montserrat',sans-serif;font-size:30px;font-weight:800}
+.result-verdict.ok{color:var(--ok)}
+.result-verdict.good{color:var(--good)}
+.result-verdict.ng{color:var(--ng)}
+.result-sec{display:flex;flex-direction:column;gap:5px}
+.result-lbl-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
+.speak-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:3px 5px;border-radius:6px;display:flex;align-items:center;transition:color .15s}
+.speak-btn:active{color:var(--accent)}
+
+.result-lbl{font-size:10px;color:var(--muted);letter-spacing:.16em;font-family:'Inter',sans-serif;font-weight:700}
+.result-box{font-size:16px;line-height:1.6;padding:11px 13px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);font-family:'Inter','M PLUS 1p',sans-serif}
+.result-box.model{color:var(--accent);font-style:italic}
+.result-comment{font-size:13px;line-height:1.75;padding:10px 13px;background:rgba(112,64,208,.07);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;font-family:'Inter','M PLUS 1p',sans-serif}
+
+.ask-section{display:flex;flex-direction:column;gap:8px}
+.ask-row{display:flex;gap:8px;align-items:center}
+.ask-input{flex:1;padding:10px 12px;background:var(--card2);border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:'Inter','M PLUS 1p',sans-serif;color:var(--text);outline:none;transition:border-color .2s}
+.ask-input:focus{border-color:var(--accent)}
+.ask-input::placeholder{color:var(--muted);font-size:12px}
+.ask-send-btn{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--lavender),var(--accent2));border:none;color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s}
+.ask-send-btn:active{opacity:.8}
+.ask-send-btn:disabled{opacity:.38;pointer-events:none}
+.ask-response{font-size:13px;line-height:1.8;padding:10px 13px;background:rgba(112,64,208,.05);border-left:3px solid var(--accent2);border-radius:0 8px 8px 0;font-family:'Inter','M PLUS 1p',sans-serif;display:none;white-space:pre-wrap}
+.ask-response.visible{display:block}
+.result-actions{display:flex;gap:10px;margin-top:2px}
+.rbtn{flex:1;padding:14px;border-radius:12px;border:none;font-size:15px;font-family:'Inter','M PLUS 1p',sans-serif;font-weight:700;cursor:pointer;transition:opacity .15s;letter-spacing:.04em}
+.rbtn:active{opacity:.8}
+.rbtn.next{background:linear-gradient(135deg,var(--lavender),var(--accent2));color:white;box-shadow:0 4px 18px rgba(112,64,208,.3)}
+.rbtn.again{background:var(--card2);border:1.5px solid var(--border);color:var(--text)}
+
+/* COMPLETE */
+#complete{background:var(--bg);align-items:center;justify-content:center;padding:36px 28px;text-align:center;gap:18px}
+.complete-emoji{animation:sway 3.5s ease-in-out infinite;color:var(--accent2)}
+@keyframes sway{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+.complete-h{font-family:'Montserrat',sans-serif;font-size:36px;color:var(--accent);font-weight:800}
+.complete-sub{color:var(--muted);font-size:13px;line-height:1.9;font-family:'Inter','M PLUS 1p',sans-serif}
+.complete-stats{display:flex;gap:12px}
+.s-box{flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.s-num{font-family:'Montserrat',sans-serif;font-size:26px;font-weight:700;color:var(--accent)}
+.s-lbl{font-size:10px;color:var(--muted);letter-spacing:.12em;font-family:'Inter',sans-serif}
+.complete-home-btn{padding:15px 36px;border-radius:16px;background:linear-gradient(135deg,var(--lavender),var(--accent2));border:none;color:white;font-size:15px;font-family:'Inter','M PLUS 1p',sans-serif;font-weight:700;cursor:pointer;box-shadow:0 4px 24px rgba(112,64,208,.32)}
+
+/* WORD TOKENS */
+.wt{cursor:pointer;border-radius:3px;padding:1px 0;transition:background .12s}
+.wt:hover{background:rgba(112,64,208,.13)}
+.wt:active{background:rgba(112,64,208,.24)}
+.wt.saving{opacity:.45;pointer-events:none}
+.wt.saved{color:var(--accent2)!important;border-bottom:1.5px dotted var(--accent2);font-style:normal!important}
+
+/* VOCAB HOME BUTTON */
+.vocab-home-btn{display:flex;align-items:center;justify-content:space-between;margin:8px 24px 0;padding:13px 16px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;cursor:pointer;font-family:'Inter','M PLUS 1p',sans-serif;font-size:13px;font-weight:600;color:var(--text);transition:background .15s;width:calc(100% - 48px)}
+.vocab-home-btn:active{background:var(--card2)}
+.vocab-home-btn-left{display:flex;align-items:center;gap:9px;color:var(--accent)}
+.vocab-badge{background:linear-gradient(135deg,var(--lavender),var(--accent2));color:white;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;font-family:'Inter',sans-serif;min-width:22px;text-align:center}
+
+/* VOCAB SCREEN */
+#vocab{overflow-y:auto;background:var(--bg);padding-bottom:40px}
+.vocab-topbar{display:flex;align-items:center;justify-content:space-between;padding:50px 20px 10px;position:sticky;top:0;background:var(--bg);z-index:10}
+.vocab-title{font-family:'Montserrat',sans-serif;font-size:17px;font-weight:800;color:var(--accent)}
+.vocab-clear-btn{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;font-family:'Inter',sans-serif}
+.vocab-clear-btn:active{background:var(--card2)}
+.vocab-count{font-size:12px;color:var(--muted);padding:4px 22px 10px;font-family:'Inter',sans-serif;letter-spacing:.05em}
+.vocab-list{padding:0 20px;display:flex;flex-direction:column;gap:8px}
+.vocab-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;animation:vc-in .22s ease}
+@keyframes vc-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.vocab-word{font-family:'Inter',sans-serif;font-size:15px;font-weight:700;color:var(--accent);flex:0 0 auto;min-width:90px}
+.vocab-meaning{font-size:13px;color:var(--text);font-family:'Inter','M PLUS 1p',sans-serif;flex:1;line-height:1.5}
+.vocab-del{background:none;border:none;cursor:pointer;color:var(--border);padding:4px;border-radius:6px;transition:color .15s;flex-shrink:0;display:flex;align-items:center}
+.vocab-del:active{color:var(--ng)}
+.vocab-edit-btn{background:none;border:none;cursor:pointer;color:var(--border);padding:4px;border-radius:6px;transition:color .15s;flex-shrink:0;display:flex;align-items:center}
+.vocab-edit-btn:active{color:var(--accent)}
+.vocab-empty{text-align:center;padding:60px 24px 20px;color:var(--muted);font-size:15px;font-family:'Inter','M PLUS 1p',sans-serif;line-height:2.2}
+.vocab-empty svg{display:block;margin:0 auto 12px;color:var(--border)}
+.vocab-add-form{padding:0 20px 12px;display:flex;flex-direction:column;gap:7px}
+.vocab-add-row{display:flex;gap:7px;align-items:center}
+.vocab-input{flex:1;padding:9px 11px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:'Inter','M PLUS 1p',sans-serif;color:var(--text);outline:none;transition:border-color .2s;-webkit-user-select:text;user-select:text}
+.vocab-input:focus{border-color:var(--accent)}
+.vocab-input::placeholder{color:var(--muted);font-size:12px}
+.vocab-add-btn{height:38px;padding:0 14px;border-radius:10px;background:linear-gradient(135deg,var(--lavender),var(--accent2));border:none;color:white;font-size:13px;font-family:'Inter',sans-serif;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;white-space:nowrap}
+.vocab-add-btn:active{opacity:.8}
+.vocab-add-btn:disabled{opacity:.38;pointer-events:none}
+.vocab-card.editing{border-color:var(--accent);background:rgba(112,64,208,.04);flex-wrap:wrap;gap:8px}
+.vocab-ok-btn{background:none;border:none;cursor:pointer;color:var(--ok);padding:4px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;transition:color .15s}
+.vocab-ok-btn:active{opacity:.7}
+
+/* TOAST */
+.word-toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(24,8,58,.9);color:white;font-size:13px;padding:10px 20px;border-radius:22px;font-family:'Inter','M PLUS 1p',sans-serif;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .22s,transform .22s;z-index:999;max-width:90vw;text-overflow:ellipsis;overflow:hidden}
+.word-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div class="screen" id="home">
+  <div class="home-hero">
+    <div class="app-title"><span class="lilac">Lilac</span> <span class="english">English</span></div>
+    <div class="app-sub">SPEAK · BLOOM · REPEAT</div>
+  </div>
+  <div class="sec-label">MODE</div>
+  <div class="mode-row">
+    <button class="mode-btn active" id="btn-lesson" onclick="setMode('lesson')">レッスン順</button>
+    <button class="mode-btn" id="btn-random" onclick="setMode('random')">ランダム</button>
+  </div>
+  <button class="random-btn" onclick="startRandom()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg> ランダム20問で始める</button>
+  <button class="vocab-home-btn" onclick="showVocabScreen()">
+    <div class="vocab-home-btn-left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>単語帳</div>
+    <span class="vocab-badge" id="vocab-badge">0</span>
+  </button>
+  <div class="sec-label">CHAPTER / LESSON</div>
+  <div class="chapter-list" id="chapter-list"></div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen hidden" id="quiz">
+  <div class="quiz-topbar">
+    <button class="back-btn" onclick="goHome()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div class="quiz-meta">
+      <div id="quiz-title-lbl">be動詞</div>
+      <div id="quiz-prog-lbl">1 / 10</div>
+    </div>
+  </div>
+  <div class="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="quiz-scroll">
+    <div class="lesson-tag" id="lesson-tag">CHAPTER 1 · LESSON 1</div>
+    <div class="jp-card"><div class="jp-text" id="jp-text">私は学生です。</div></div>
+  </div>
+  <div class="mic-zone">
+    <div class="transcript-box" id="transcript-box">
+      <span class="transcript-ph" id="transcript-ph">録音後、ここに認識結果が表示されます</span>
+      <span id="transcript-txt"></span>
+    </div>
+    <div class="timer-ring">
+      <svg width="108" height="108" viewBox="0 0 108 108">
+        <circle class="ring-bg" cx="54" cy="54" r="47"/>
+        <circle class="ring-fg" id="ring-fg" cx="54" cy="54" r="47" stroke-dasharray="295.3" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-inner">
+        <div class="timer-sec" id="timer-sec">12</div>
+        <div class="timer-unit">SEC</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="side-btn" id="retry-btn" onclick="retryQ()" disabled>↺</button>
+      <button class="mic-btn idle" id="mic-btn" onclick="onMicTap()"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
+      <div style="width:48px"></div>
+    </div>
+    <div class="mic-hint" id="mic-hint">タップして録音開始</div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result-overlay" class="hidden">
+  <div class="result-sheet">
+    <div class="drag-handle"></div>
+    <div class="result-badge">
+      <div class="result-icon" id="res-icon"></div>
+      <div class="result-verdict ok" id="res-verdict">Excellent!</div>
+    </div>
+    <div class="result-sec">
+      <div class="result-lbl-row"><span class="result-lbl">YOUR ANSWER</span><button class="speak-btn" id="speak-your-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button></div>
+      <div class="result-box" id="res-your"></div>
+    </div>
+    <div class="result-sec">
+      <div class="result-lbl-row"><span class="result-lbl">MODEL ANSWER</span><button class="speak-btn" id="speak-model-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button></div>
+      <div class="result-box model" id="res-model"></div>
+    </div>
+    <div class="result-comment" id="res-comment"></div>
+    <div class="ask-section">
+      <div class="ask-row">
+        <input class="ask-input" id="ask-input" type="text" placeholder="AIに質問する..." onkeydown="if(event.key==='Enter'&&!event.isComposing)askAI()"/>
+        <button class="ask-send-btn" id="ask-send-btn" onclick="askAI()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+      </div>
+      <div class="ask-response" id="ask-response"></div>
+    </div>
+    <div class="result-actions">
+      <button class="rbtn again" onclick="retryFromResult()">もう一度</button>
+      <button class="rbtn next" id="res-next-btn" onclick="nextQ()">次へ →</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPLETE -->
+<div class="screen hidden" id="complete">
+  <div class="complete-emoji"><svg width="56" height="56" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+  <div class="complete-h">Well done!</div>
+  <div class="complete-sub" id="complete-sub">レッスン完了！</div>
+  <div class="complete-stats">
+    <div class="s-box"><div class="s-num" id="s-correct">0</div><div class="s-lbl">CORRECT</div></div>
+    <div class="s-box"><div class="s-num" id="s-total">0</div><div class="s-lbl">TOTAL</div></div>
+    <div class="s-box"><div class="s-num" id="s-rate">0%</div><div class="s-lbl">RATE</div></div>
+  </div>
+  <button class="complete-home-btn" onclick="goHome()">ホームへ</button>
+</div>
+
+<!-- VOCAB -->
+<div class="screen hidden" id="vocab">
+  <div class="vocab-topbar">
+    <button class="back-btn" onclick="goHome()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div class="vocab-title">単語帳</div>
+    <button class="vocab-clear-btn" onclick="confirmClearVocab()">全削除</button>
+  </div>
+  <div class="vocab-count" id="vocab-count"></div>
+  <div class="vocab-add-form">
+    <div class="vocab-add-row">
+      <input class="vocab-input" id="vadd-word" type="text" placeholder="フレーズ・単語（例: give up）" onkeydown="if(event.key==='Enter'&&!event.isComposing)document.getElementById('vadd-meaning').focus()"/>
+    </div>
+    <div class="vocab-add-row">
+      <input class="vocab-input" id="vadd-meaning" type="text" placeholder="意味（空欄でAI自動取得）" onkeydown="if(event.key==='Enter'&&!event.isComposing)addVocabManual()"/>
+      <button class="vocab-add-btn" id="vadd-btn" onclick="addVocabManual()">+ 追加</button>
+    </div>
+  </div>
+  <div class="vocab-list" id="vocab-list"></div>
+</div>
+
+<!-- TOAST -->
+<div class="word-toast" id="word-toast"></div>
+
+<script>
+let API_KEY = localStorage.getItem('lilac_api_key') || '';
+if (!API_KEY) {
+  API_KEY = prompt('Anthropic APIキーを入力してください:') || '';
+  if (API_KEY) localStorage.setItem('lilac_api_key', API_KEY);
+}
+const MAX_SEC = 12, CIRC = 295.3;
+
+const CSV_DATA = [
+["1","1","be動詞","私は学生です。","I am a student."],
+["1","1","be動詞","彼は医者です。","He is a doctor."],
+["1","1","be動詞","彼女は忙しいですか？","Is she busy?"],
+["1","1","be動詞","私たちは友達です。","We are friends."],
+["1","1","be動詞","これは私の本ではありません。","This is not my book."],
+["1","1","be動詞","あなたは疲れていますか？","Are you tired?"],
+["1","1","be動詞","彼らは日本人です。","They are Japanese."],
+["1","1","be動詞","その映画は面白くありません。","The movie is not interesting."],
+["1","1","be動詞","あなたの名前は何ですか？","What is your name?"],
+["1","1","be動詞","彼女は今、家にいます。","She is at home now."],
+["1","2","一般動詞","私は毎朝コーヒーを飲みます。","I drink coffee every morning."],
+["1","2","一般動詞","彼は東京に住んでいます。","He lives in Tokyo."],
+["1","2","一般動詞","あなたは英語を話しますか？","Do you speak English?"],
+["1","2","一般動詞","私は魚が好きではありません。","I don't like fish."],
+["1","2","一般動詞","彼女は何時に起きますか？","What time does she get up?"],
+["1","2","一般動詞","私たちは週末に公園へ行きます。","We go to the park on weekends."],
+["1","2","一般動詞","彼は音楽を聞きません。","He doesn't listen to music."],
+["1","2","一般動詞","あなたのご職業は？","What do you do?"],
+["1","2","一般動詞","私は毎晩本を読みます。","I read a book every night."],
+["1","2","一般動詞","彼女はフランス語を教えています。","She teaches French."],
+["1","3","三単現の文","彼は毎日走ります。","He runs every day."],
+["1","3","三単現の文","彼女は料理が上手です。","She cooks well."],
+["1","3","三単現の文","彼は学校まで歩きますか？","Does he walk to school?"],
+["1","3","三単現の文","彼女は肉を食べません。","She doesn't eat meat."],
+["1","3","三単現の文","彼は何の教科を教えていますか？","What subject does he teach?"],
+["1","3","三単現の文","彼女は早く起きます。","She gets up early."],
+["1","3","三単現の文","彼は犬を一匹飼っています。","He has a dog."],
+["1","3","三単現の文","彼女は週に2回泳ぎますか？","Does she swim twice a week?"],
+["1","3","三単現の文","彼は夜遅くまで働きます。","He works late at night."],
+["1","3","三単現の文","その店は朝9時に開きます。","The store opens at nine in the morning."],
+["1","4","SV","彼女は笑いました。","She smiled."],
+["1","4","SV","犬が走っています。","The dog is running."],
+["1","4","SV","赤ちゃんが泣いています。","The baby is crying."],
+["1","4","SV","彼は昨日来ませんでした。","He didn't come yesterday."],
+["1","4","SV","鳥が空を飛んでいます。","Birds are flying in the sky."],
+["1","4","SV","彼女はもう起きましたか？","Has she gotten up yet?"],
+["1","4","SV","電車が止まりました。","The train stopped."],
+["1","4","SV","彼はゆっくり歩きます。","He walks slowly."],
+["1","4","SV","太陽が沈んでいきます。","The sun is setting."],
+["1","4","SV","子供たちが公園で遊んでいます。","The children are playing in the park."],
+["1","5","SVC","彼は疲れて見えます。","He looks tired."],
+["1","5","SVC","このスープは美味しいです。","This soup tastes good."],
+["1","5","SVC","彼女は幸せそうです。","She seems happy."],
+["1","5","SVC","空が暗くなっています。","The sky is getting dark."],
+["1","5","SVC","彼は有名な俳優です。","He is a famous actor."],
+["1","5","SVC","この花はとても良い香りがします。","This flower smells very nice."],
+["1","5","SVC","彼女は怒っているようです。","She seems angry."],
+["1","5","SVC","その音楽は心地よく聞こえます。","The music sounds pleasant."],
+["1","5","SVC","彼は医者になりました。","He became a doctor."],
+["1","5","SVC","この問題は難しそうです。","This problem looks difficult."],
+["1","6","SVO","私は昨日映画を見ました。","I watched a movie yesterday."],
+["1","6","SVO","彼女は新しい車を買いました。","She bought a new car."],
+["1","6","SVO","彼はその知らせを聞きましたか？","Did he hear the news?"],
+["1","6","SVO","私は彼の意見が理解できません。","I don't understand his opinion."],
+["1","6","SVO","あなたはその本を読みましたか？","Did you read the book?"],
+["1","6","SVO","彼女は毎日日記を書きます。","She writes a diary every day."],
+["1","6","SVO","私たちはその試合を楽しみました。","We enjoyed the game."],
+["1","6","SVO","彼はそのメールに返信しませんでした。","He didn't reply to the email."],
+["1","6","SVO","私はあなたのことが心配です。","I'm worried about you."],
+["1","6","SVO","彼女は子供のころピアノを習っていました。","She learned piano when she was a child."],
+["1","7","SVOO","彼女は私にプレゼントをくれました。","She gave me a present."],
+["1","7","SVOO","彼は私たちに道を教えてくれました。","He showed us the way."],
+["1","7","SVOO","お父さんは私に自転車を買ってくれました。","My father bought me a bicycle."],
+["1","7","SVOO","先生は私たちに宿題を出しました。","The teacher gave us homework."],
+["1","7","SVOO","彼女は私にケーキを作ってくれました。","She made me a cake."],
+["1","7","SVOO","その店員さんは私にレシートを渡してくれました。","The clerk handed me the receipt."],
+["1","7","SVOO","彼に電話番号を教えてあげました。","I told him my phone number."],
+["1","7","SVOO","彼女は息子に絵本を読んであげました。","She read her son a picture book."],
+["1","7","SVOO","上司は私にチャンスをくれました。","My boss gave me a chance."],
+["1","7","SVOO","友達が私にそのアプリのことを教えてくれました。","My friend told me about the app."],
+["1","8","SVO to/for O","彼は私に花を送ってくれました。","He sent flowers to me."],
+["1","8","SVO to/for O","彼女は友達のためにコーヒーを買いました。","She bought coffee for her friend."],
+["1","8","SVO to/for O","母は私に手紙を書いてくれました。","My mother wrote a letter to me."],
+["1","8","SVO to/for O","彼は彼女のためにドアを開けました。","He opened the door for her."],
+["1","8","SVO to/for O","先生は生徒たちに本を貸してくれました。","The teacher lent the book to the students."],
+["1","8","SVO to/for O","彼女は私のためにメモを取ってくれました。","She took notes for me."],
+["1","8","SVO to/for O","彼は妻に指輪を買いました。","He bought a ring for his wife."],
+["1","8","SVO to/for O","その情報を彼に伝えました。","I passed the information to him."],
+["1","8","SVO to/for O","彼女は私のために昼食を作ってくれました。","She made lunch for me."],
+["1","8","SVO to/for O","彼はチームメンバーにタスクを割り当てました。","He assigned tasks to the team members."],
+["1","9","SVOC","みんな彼女をメアリーと呼びます。","Everyone calls her Mary."],
+["1","9","SVOC","私はその映画を面白いと思いました。","I found the movie interesting."],
+["1","9","SVOC","彼は窓を開けたままにしました。","He left the window open."],
+["1","9","SVOC","彼女は息子に医者になってほしいと思っています。","She wants her son to become a doctor."],
+["1","9","SVOC","この歌は私を幸せな気持ちにします。","This song makes me happy."],
+["1","9","SVOC","彼らは彼を新しいリーダーに選びました。","They chose him as the new leader."],
+["1","9","SVOC","彼はその仕事を難しいと感じました。","He found the work difficult."],
+["1","9","SVOC","私たちはその決定を間違いだと思いました。","We thought the decision was a mistake."],
+["1","9","SVOC","彼女は部屋をきれいに保っています。","She keeps the room clean."],
+["1","9","SVOC","その知らせは彼を驚かせました。","The news surprised him."],
+["1","10","命令文/Let's","ドアを閉めてください。","Please close the door."],
+["1","10","命令文/Let's","ここで走らないでください。","Don't run here."],
+["1","10","命令文/Let's","一緒に昼食を食べましょう。","Let's have lunch together."],
+["1","10","命令文/Let's","静かにしてください。","Be quiet please."],
+["1","10","命令文/Let's","この週末は出かけましょう。","Let's go out this weekend."],
+["1","10","命令文/Let's","遅れないようにしてください。","Don't be late."],
+["1","10","命令文/Let's","気をつけてください。","Be careful."],
+["1","10","命令文/Let's","心配しないでください。","Don't worry."],
+["1","10","命令文/Let's","今夜は映画を見ましょう。","Let's watch a movie tonight."],
+["1","10","命令文/Let's","窓を開けてもらえますか？","Please open the window."],
+["1","11","現在進行形/過去進行形","彼女は今電話中です。","She is talking on the phone now."],
+["1","11","現在進行形/過去進行形","私が着いたとき、彼は本を読んでいました。","When I arrived he was reading a book."],
+["1","11","現在進行形/過去進行形","今、雨が降っています。","It is raining now."],
+["1","11","現在進行形/過去進行形","彼らは昨夜パーティーを楽しんでいました。","They were enjoying the party last night."],
+["1","11","現在進行形/過去進行形","あなたは今何をしていますか？","What are you doing now?"],
+["1","11","現在進行形/過去進行形","子供たちは庭で遊んでいます。","The children are playing in the garden."],
+["1","11","現在進行形/過去進行形","彼女は昨日の午後、料理をしていました。","She was cooking yesterday afternoon."],
+["1","11","現在進行形/過去進行形","私は今、レポートを書いているところです。","I am writing a report now."],
+["1","11","現在進行形/過去進行形","彼は電車の中で音楽を聞いていました。","He was listening to music on the train."],
+["1","11","現在進行形/過去進行形","その時、私たちは夕食を食べていました。","At that time we were having dinner."],
+["1","12","it（天気/時間）","今日は暑いですね。","It is hot today."],
+["1","12","it（天気/時間）","外は雨が降っていますか？","Is it raining outside?"],
+["1","12","it（天気/時間）","今何時ですか？","What time is it now?"],
+["1","12","it（天気/時間）","もう10時です。","It is already ten o'clock."],
+["1","12","it（天気/時間）","昨日はとても寒かったです。","It was very cold yesterday."],
+["1","12","it（天気/時間）","今日は風が強いです。","It is very windy today."],
+["1","12","it（天気/時間）","もうすぐ夕方になります。","It will be evening soon."],
+["1","12","it（天気/時間）","今週末は晴れますか？","Will it be sunny this weekend?"],
+["1","12","it（天気/時間）","先週は曇りが多かったです。","It was mostly cloudy last week."],
+["1","12","it（天気/時間）","夜の10時を過ぎています。","It is past ten at night."],
+["1","13","There is/are構文","テーブルの上にリンゴが1つあります。","There is an apple on the table."],
+["1","13","There is/are構文","この近くにコンビニはありますか？","Is there a convenience store near here?"],
+["1","13","There is/are構文","公園にたくさんの子供たちがいます。","There are many children in the park."],
+["1","13","There is/are構文","この部屋には窓が2つあります。","There are two windows in this room."],
+["1","13","There is/are構文","冷蔵庫に何も食べ物がありません。","There is no food in the refrigerator."],
+["1","13","There is/are構文","街に新しいレストランができました。","There is a new restaurant in the city."],
+["1","13","There is/are構文","その箱の中に何か入っていますか？","Is there anything in the box?"],
+["1","13","There is/are構文","図書館にはたくさんの本があります。","There are many books in the library."],
+["1","13","There is/are構文","バス停の近くに花屋があります。","There is a flower shop near the bus stop."],
+["1","13","There is/are構文","ここには問題が何もありません。","There are no problems here."],
+["1","14","疑問詞疑問文","あなたはどこに住んでいますか？","Where do you live?"],
+["1","14","疑問詞疑問文","彼女はなぜ泣いているのですか？","Why is she crying?"],
+["1","14","疑問詞疑問文","駅まではどのくらいかかりますか？","How long does it take to the station?"],
+["1","14","疑問詞疑問文","あなたはいつ日本に来ましたか？","When did you come to Japan?"],
+["1","14","疑問詞疑問文","この荷物はどのくらいの重さですか？","How heavy is this luggage?"],
+["1","14","疑問詞疑問文","あなたは何人兄弟がいますか？","How many siblings do you have?"],
+["1","14","疑問詞疑問文","彼はどうやってその問題を解きましたか？","How did he solve the problem?"],
+["1","14","疑問詞疑問文","あなたはどの映画が好きですか？","Which movie do you like?"],
+["1","14","疑問詞疑問文","彼女は誰と話していましたか？","Who was she talking with?"],
+["1","14","疑問詞疑問文","あの建物は何ですか？","What is that building?"],
+["1","15","付加疑問文","今日は暑いですね？","It's hot today isn't it?"],
+["1","15","付加疑問文","彼は学生ですよね？","He is a student isn't he?"],
+["1","15","付加疑問文","彼女はここに来ませんでしたよね？","She didn't come here did she?"],
+["1","15","付加疑問文","あなたは英語が話せますよね？","You can speak English can't you?"],
+["1","15","付加疑問文","この映画は面白くないですよね？","This movie isn't interesting is it?"],
+["1","15","付加疑問文","彼らはもう帰りましたよね？","They have already gone home haven't they?"],
+["1","15","付加疑問文","あなたはその話を知らないですよね？","You don't know the story do you?"],
+["1","15","付加疑問文","彼女は昨日学校に行きましたよね？","She went to school yesterday didn't she?"],
+["1","15","付加疑問文","私たちは以前会ったことがありますよね？","We have met before haven't we?"],
+["1","15","付加疑問文","これはあなたの本ではないですよね？","This isn't your book is it?"],
+["2","1","過去形（規則動詞）","私は昨日図書館で勉強しました。","I studied at the library yesterday."],
+["2","1","過去形（規則動詞）","彼女は先週新しい仕事を始めました。","She started a new job last week."],
+["2","1","過去形（規則動詞）","彼らは昨夜パーティーを楽しみました。","They enjoyed the party last night."],
+["2","1","過去形（規則動詞）","私は今朝早く起きました。","I woke up early this morning."],
+["2","1","過去形（規則動詞）","彼は昨日友達に電話しました。","He called his friend yesterday."],
+["2","1","過去形（規則動詞）","彼女は先月海外旅行をしました。","She traveled abroad last month."],
+["2","1","過去形（規則動詞）","私たちは先週末映画を見ました。","We watched a movie last weekend."],
+["2","1","過去形（規則動詞）","彼はその試合で1位になりました。","He finished first in the competition."],
+["2","1","過去形（規則動詞）","彼女は昨夜遅くまで働きました。","She worked late last night."],
+["2","1","過去形（規則動詞）","私は先週の土曜日に料理をしました。","I cooked last Saturday."],
+["2","2","過去形（不規則動詞）","私は昨日新しい本を買いました。","I bought a new book yesterday."],
+["2","2","過去形（不規則動詞）","彼は先週、友達に会いました。","He met his friend last week."],
+["2","2","過去形（不規則動詞）","彼女は子供のころピアノを弾いていました。","She played the piano when she was a child."],
+["2","2","過去形（不規則動詞）","私たちは昨夜おいしいものを食べました。","We ate delicious food last night."],
+["2","2","過去形（不規則動詞）","彼はその荷物をテーブルの上に置きました。","He put the luggage on the table."],
+["2","2","過去形（不規則動詞）","私はその知らせを聞いて驚きました。","I was surprised when I heard the news."],
+["2","2","過去形（不規則動詞）","彼女は昨日学校を休みました。","She was absent from school yesterday."],
+["2","2","過去形（不規則動詞）","彼らは先週の金曜日に来ました。","They came last Friday."],
+["2","2","過去形（不規則動詞）","私は先月その本を読みました。","I read that book last month."],
+["2","2","過去形（不規則動詞）","彼は昨年、東京に引っ越しました。","He moved to Tokyo last year."],
+["2","3","未来形（will）","明日は晴れるでしょう。","It will be sunny tomorrow."],
+["2","3","未来形（will）","彼は来週戻ってきます。","He will be back next week."],
+["2","3","未来形（will）","私はあなたを手伝います。","I will help you."],
+["2","3","未来形（will）","彼女は将来医者になるでしょう。","She will become a doctor in the future."],
+["2","3","未来形（will）","私たちは明日会議を開きます。","We will have a meeting tomorrow."],
+["2","3","未来形（will）","彼はきっとその試験に合格するでしょう。","He will surely pass the exam."],
+["2","3","未来形（will）","その問題はすぐに解決されるでしょう。","The problem will be solved soon."],
+["2","3","未来形（will）","彼女は来月新しいプロジェクトを始めるでしょう。","She will start a new project next month."],
+["2","3","未来形（will）","その映画は来週公開されます。","The movie will be released next week."],
+["2","3","未来形（will）","私はその提案を検討します。","I will consider the proposal."],
+["2","4","未来形（be going to）","彼女は来月引っ越す予定です。","She is going to move next month."],
+["2","4","未来形（be going to）","私たちは今夜外食する予定です。","We are going to eat out tonight."],
+["2","4","未来形（be going to）","彼は来年留学する予定です。","He is going to study abroad next year."],
+["2","4","未来形（be going to）","空が暗くなっています。雨が降りそうです。","It is going to rain."],
+["2","4","未来形（be going to）","彼女は来週プレゼンをする予定です。","She is going to give a presentation next week."],
+["2","4","未来形（be going to）","私は今週末に部屋を掃除する予定です。","I am going to clean my room this weekend."],
+["2","4","未来形（be going to）","彼らは来月新しいオフィスに移転する予定です。","They are going to move to a new office next month."],
+["2","4","未来形（be going to）","彼は今日の午後、病院へ行く予定です。","He is going to go to the hospital this afternoon."],
+["2","4","未来形（be going to）","私たちは来年旅行に行く予定です。","We are going to travel next year."],
+["2","4","未来形（be going to）","その店は今月末に閉まる予定です。","The store is going to close at the end of this month."],
+["2","5","助動詞（can/could）","彼女はスペイン語を話すことができます。","She can speak Spanish."],
+["2","5","助動詞（can/could）","子供のころ、私は速く走ることができました。","When I was a child I could run fast."],
+["2","5","助動詞（can/could）","この問題は解けますか？","Can you solve this problem?"],
+["2","5","助動詞（can/could）","彼はまだ泳げません。","He cannot swim yet."],
+["2","5","助動詞（can/could）","窓を開けていただけますか？","Could you open the window?"],
+["2","5","助動詞（can/could）","彼女は昔、ピアノが弾けました。","She could play the piano in the old days."],
+["2","5","助動詞（can/could）","あなたは一人でここに来ることができますか？","Can you come here alone?"],
+["2","5","助動詞（can/could）","彼はその重い荷物を一人で持てません。","He cannot carry that heavy luggage alone."],
+["2","5","助動詞（can/could）","少し早く来ることはできますか？","Could you come a little earlier?"],
+["2","5","助動詞（can/could）","私はその答えが思い出せませんでした。","I could not remember the answer."],
+["2","6","助動詞（may/might）","明日は雨が降るかもしれません。","It may rain tomorrow."],
+["2","6","助動詞（may/might）","彼は今日来ないかもしれません。","He might not come today."],
+["2","6","助動詞（may/might）","写真を撮ってもよいですか？","May I take a picture?"],
+["2","6","助動詞（may/might）","彼女はもう家に帰ったかもしれません。","She may have gone home already."],
+["2","6","助動詞（may/might）","その計画はうまくいかないかもしれません。","The plan might not work."],
+["2","6","助動詞（may/might）","ここで話してもよいですか？","May I talk here?"],
+["2","6","助動詞（may/might）","彼はその知らせを知らないかもしれません。","He might not know the news."],
+["2","6","助動詞（may/might）","彼女は今仕事中かもしれません。","She may be working right now."],
+["2","6","助動詞（may/might）","その映画はあまり面白くないかもしれません。","The movie might not be very interesting."],
+["2","6","助動詞（may/might）","少し席を外してもよいですか？","May I step out for a moment?"],
+["2","7","助動詞（must/have to）","毎日薬を飲まなければなりません。","I must take medicine every day."],
+["2","7","助動詞（must/have to）","この書類は今日中に提出しなければなりません。","I have to submit this document today."],
+["2","7","助動詞（must/have to）","彼はここで働いてはいけません。","He must not work here."],
+["2","7","助動詞（must/have to）","あなたはもっと休まなければなりません。","You must rest more."],
+["2","7","助動詞（must/have to）","私は明日早起きしなければなりません。","I have to wake up early tomorrow."],
+["2","7","助動詞（must/have to）","この場所では静かにしなければなりません。","You must be quiet in this place."],
+["2","7","助動詞（must/have to）","彼女は今日中にレポートを仕上げなければなりません。","She has to finish the report today."],
+["2","7","助動詞（must/have to）","ここでは写真を撮ってはいけません。","You must not take pictures here."],
+["2","7","助動詞（must/have to）","彼は毎週ミーティングに参加しなければなりません。","He has to attend the meeting every week."],
+["2","7","助動詞（must/have to）","子供たちは早く寝なければなりません。","Children must go to bed early."],
+["2","8","助動詞（should/ought to）","もっと野菜を食べるべきです。","You should eat more vegetables."],
+["2","8","助動詞（should/ought to）","彼はすぐに謝るべきです。","He ought to apologize right away."],
+["2","8","助動詞（should/ought to）","あなたはもっと運動すべきです。","You should exercise more."],
+["2","8","助動詞（should/ought to）","その映画は見るべきです。","You ought to watch that movie."],
+["2","8","助動詞（should/ought to）","彼女はもっと早く医者に行くべきでした。","She should have gone to the doctor sooner."],
+["2","8","助動詞（should/ought to）","私たちはその問題について話し合うべきです。","We should discuss that issue."],
+["2","8","助動詞（should/ought to）","彼はもっと準備するべきです。","He should prepare more."],
+["2","8","助動詞（should/ought to）","その書類は丁寧に扱うべきです。","The document ought to be handled carefully."],
+["2","8","助動詞（should/ought to）","あなたはその仕事をもっと真剣に取り組むべきです。","You should take that job more seriously."],
+["2","8","助動詞（should/ought to）","彼女はその決定を慎重に考えるべきです。","She ought to think carefully about that decision."],
+["2","9","助動詞（would/used to）","子供のころ、私はよく川で釣りをしたものです。","When I was a child I used to fish in the river."],
+["2","9","助動詞（would/used to）","彼はかつてその会社で働いていました。","He used to work at that company."],
+["2","9","助動詞（would/used to）","ドアを開けていただけますか？","Would you open the door?"],
+["2","9","助動詞（would/used to）","彼女はよく図書館で本を読んでいたものです。","She would often read books in the library."],
+["2","9","助動詞（would/used to）","子供のころ、私たちはよく公園で遊んでいました。","When we were children we used to play in the park."],
+["2","9","助動詞（would/used to）","もう少し待っていただけますか？","Would you wait a little longer?"],
+["2","9","助動詞（would/used to）","彼はかつてとても内気でした。","He used to be very shy."],
+["2","9","助動詞（would/used to）","私たちはよく放課後に集まっていたものです。","We would often get together after school."],
+["2","9","助動詞（would/used to）","その店はかつてとても混んでいました。","That store used to be very crowded."],
+["2","9","助動詞（would/used to）","彼女はよく週末に料理をしていたものです。","She would often cook on weekends."],
+["2","10","不定詞（名詞的用法）","私は英語を勉強することが好きです。","I like to study English."],
+["2","10","不定詞（名詞的用法）","彼女の夢は医者になることです。","Her dream is to become a doctor."],
+["2","10","不定詞（名詞的用法）","私は今すぐ出発したいです。","I want to leave right now."],
+["2","10","不定詞（名詞的用法）","彼はそのプロジェクトを完成させることを目標にしています。","He aims to complete the project."],
+["2","10","不定詞（名詞的用法）","彼女は毎日運動することを決めました。","She decided to exercise every day."],
+["2","10","不定詞（名詞的用法）","私の目標は来年留学することです。","My goal is to study abroad next year."],
+["2","10","不定詞（名詞的用法）","彼は新しい言語を学ぶことを楽しんでいます。","He enjoys learning a new language."],
+["2","10","不定詞（名詞的用法）","彼女はその仕事を引き受けることに同意しました。","She agreed to take on the job."],
+["2","10","不定詞（名詞的用法）","私たちは問題を解決することを望んでいます。","We hope to solve the problem."],
+["2","10","不定詞（名詞的用法）","彼は今日中にレポートを終わらせることを約束しました。","He promised to finish the report today."],
+["2","11","不定詞（形容詞的用法）","何か飲むものを持ってきてください。","Please bring me something to drink."],
+["2","11","不定詞（形容詞的用法）","彼には話す友達がいません。","He has no friends to talk to."],
+["2","11","不定詞（形容詞的用法）","彼女にはやるべき仕事がたくさんあります。","She has a lot of work to do."],
+["2","11","不定詞（形容詞的用法）","座る場所はありますか？","Is there a place to sit?"],
+["2","11","不定詞（形容詞的用法）","私には今夜読むべき本があります。","I have a book to read tonight."],
+["2","11","不定詞（形容詞的用法）","彼女には今日解決すべき問題があります。","She has a problem to solve today."],
+["2","11","不定詞（形容詞的用法）","彼には学ぶべきことがたくさんあります。","He has a lot of things to learn."],
+["2","11","不定詞（形容詞的用法）","私は何か食べるものを探しています。","I am looking for something to eat."],
+["2","11","不定詞（形容詞的用法）","彼女には今週連絡すべき人が何人かいます。","She has some people to contact this week."],
+["2","11","不定詞（形容詞的用法）","書くものを貸していただけますか？","Could you lend me something to write with?"],
+["2","12","不定詞（副詞的用法）","彼は水を飲むために立ち上がりました。","He stood up to drink some water."],
+["2","12","不定詞（副詞的用法）","私は英語を上達させるために毎日練習しています。","I practice every day to improve my English."],
+["2","12","不定詞（副詞的用法）","彼女はその知らせを聞いてとても喜びました。","She was very happy to hear the news."],
+["2","12","不定詞（副詞的用法）","私は電車に乗り遅れてしまいました。","I was sorry to miss the train."],
+["2","12","不定詞（副詞的用法）","彼は試験に合格するために一生懸命勉強しました。","He studied hard to pass the exam."],
+["2","12","不定詞（副詞的用法）","私は彼に会うためにわざわざ駅まで行きました。","I went all the way to the station to meet him."],
+["2","12","不定詞（副詞的用法）","彼は長生きするために健康に気をつけています。","He takes care of his health to live long."],
+["2","12","不定詞（副詞的用法）","彼女はプレゼンを成功させるために徹夜しました。","She stayed up all night to make the presentation a success."],
+["2","12","不定詞（副詞的用法）","私は友達を助けるために駆けつけました。","I rushed to help my friend."],
+["2","13","動名詞","彼女は毎朝ジョギングをすることが好きです。","She likes jogging every morning."],
+["2","13","動名詞","私は音楽を聴くことをやめられません。","I can't stop listening to music."],
+["2","13","動名詞","彼は英語を話す練習をしています。","He is practicing speaking English."],
+["2","13","動名詞","彼女はその映画を見ることを楽しみました。","She enjoyed watching the movie."],
+["2","13","動名詞","私は早起きするのが苦手です。","I'm not good at getting up early."],
+["2","13","動名詞","彼は仕事を早く終わらせることを提案しました。","He suggested finishing the work quickly."],
+["2","13","動名詞","彼女は人前で話すことが得意です。","She is good at speaking in public."],
+["2","13","動名詞","彼は毎日泳ぐことを習慣にしています。","He makes it a habit to swim every day."],
+["2","13","動名詞","彼女は一人で旅行することを楽しんでいます。","She enjoys traveling alone."],
+["2","14","原形不定詞","彼女は子供たちを外で遊ばせました。","She let the children play outside."],
+["2","14","原形不定詞","私は彼が歌っているのを聞きました。","I heard him singing."],
+["2","14","原形不定詞","先生は学生たちにレポートを書かせました。","The teacher made the students write a report."],
+["2","14","原形不定詞","私は彼女が走っているのを見ました。","I saw her running."],
+["2","14","原形不定詞","彼は部下にその仕事をやらせました。","He had his staff do the work."],
+["2","14","原形不定詞","私は誰かがドアをノックするのを聞きました。","I heard someone knock on the door."],
+["2","14","原形不定詞","彼女は子供に部屋を掃除させました。","She made her child clean the room."],
+["2","14","原形不定詞","私は彼が笑っているのを見ました。","I saw him laughing."],
+["2","14","原形不定詞","彼は友達に車を使わせてあげました。","He let his friend use his car."],
+["2","14","原形不定詞","私は猫が窓から入ってくるのを見ました。","I saw a cat come in through the window."],
+["2","15","比較表現（同等比較・比較級）","彼女は私と同じくらい背が高いです。","She is as tall as I am."],
+["2","15","比較表現（同等比較・比較級）","今日は昨日より暑いです。","Today is hotter than yesterday."],
+["2","15","比較表現（同等比較・比較級）","彼は弟よりも足が速いです。","He runs faster than his younger brother."],
+["2","15","比較表現（同等比較・比較級）","この問題はあの問題と同じくらい難しいです。","This problem is as difficult as that one."],
+["2","15","比較表現（同等比較・比較級）","彼女の方が彼よりも料理が上手です。","She cooks better than he does."],
+["2","15","比較表現（同等比較・比較級）","私はあなたほど英語が上手ではありません。","I am not as good at English as you."],
+["2","15","比較表現（同等比較・比較級）","この映画はあの映画ほど面白くありません。","This movie is not as interesting as that one."],
+["2","15","比較表現（同等比較・比較級）","彼は以前よりもずっと元気になりました。","He is much better than before."],
+["2","15","比較表現（同等比較・比較級）","彼女の部屋は私の部屋より広いです。","Her room is larger than mine."],
+["2","15","比較表現（同等比較・比較級）","この電車はバスより速いです。","This train is faster than the bus."],
+["2","16","比較表現（最上級）","彼女はクラスで一番背が高いです。","She is the tallest in the class."],
+["2","16","比較表現（最上級）","これは私が今まで読んだ中で最も面白い本です。","This is the most interesting book I have ever read."],
+["2","16","比較表現（最上級）","彼はチームの中で最も優れた選手です。","He is the best player on the team."],
+["2","16","比較表現（最上級）","この山は日本で一番高いです。","This mountain is the highest in Japan."],
+["2","16","比較表現（最上級）","彼女は私が知っている中で最も親切な人です。","She is the kindest person I know."],
+["2","16","比較表現（最上級）","これは今まで食べた中で最もおいしい料理です。","This is the most delicious dish I have ever eaten."],
+["2","16","比較表現（最上級）","彼はグループの中で最も経験豊富です。","He is the most experienced in the group."],
+["2","16","比較表現（最上級）","この問題は今まで解いた中で最も難しかったです。","This was the most difficult problem I have ever solved."],
+["2","16","比較表現（最上級）","彼女はチームの中で最も一生懸命働きます。","She works the hardest on the team."],
+["2","16","比較表現（最上級）","これは世界で最も有名な絵画の一つです。","This is one of the most famous paintings in the world."],
+["2","17","受動態（現在・過去）","この建物は100年前に建てられました。","This building was built 100 years ago."],
+["2","17","受動態（現在・過去）","その試合は毎年開催されます。","The tournament is held every year."],
+["2","17","受動態（現在・過去）","彼女は上司に褒められました。","She was praised by her boss."],
+["2","17","受動態（現在・過去）","この手紙はフランス語で書かれています。","This letter is written in French."],
+["2","17","受動態（現在・過去）","その映画は世界中で見られています。","The movie is watched all over the world."],
+["2","17","受動態（現在・過去）","その問題はまだ解決されていません。","The problem has not been solved yet."],
+["2","17","受動態（現在・過去）","この車は日本で製造されました。","This car was manufactured in Japan."],
+["2","17","受動態（現在・過去）","彼はその事故で怪我をしました。","He was injured in the accident."],
+["2","17","受動態（現在・過去）","その本は多くの言語に翻訳されています。","The book has been translated into many languages."],
+["2","17","受動態（現在・過去）","この曲は世界中で愛されています。","This song is loved all over the world."],
+["2","18","受動態（進行形・完了形・助動詞）","その橋は現在工事中です。","The bridge is being repaired now."],
+["2","18","受動態（進行形・完了形・助動詞）","彼の提案はすでに承認されています。","His proposal has already been approved."],
+["2","18","受動態（進行形・完了形・助動詞）","この問題は今すぐ対処されなければなりません。","This problem must be dealt with immediately."],
+["2","18","受動態（進行形・完了形・助動詞）","新しいシステムが現在テスト中です。","The new system is being tested now."],
+["2","18","受動態（進行形・完了形・助動詞）","その報告書はまだ作成中です。","The report has not been completed yet."],
+["2","18","受動態（進行形・完了形・助動詞）","その法律はいつか改正されるべきです。","The law should be revised someday."],
+["2","18","受動態（進行形・完了形・助動詞）","プロジェクトの詳細は現在話し合われています。","The details of the project are being discussed now."],
+["2","18","受動態（進行形・完了形・助動詞）","その計画はすでに実施されています。","The plan has already been implemented."],
+["2","18","受動態（進行形・完了形・助動詞）","この状況はすぐに改善されなければなりません。","This situation must be improved immediately."],
+["2","18","受動態（進行形・完了形・助動詞）","新しい規則が現在検討されています。","New rules are being considered now."],
+["2","19","仮定法過去","もし私がお金持ちなら、世界中を旅行するのに。","If I were rich I would travel all over the world."],
+["2","19","仮定法過去","もし彼が努力すれば、試験に合格できるのに。","If he worked hard he could pass the exam."],
+["2","19","仮定法過去","もし私があなたなら、その申し出を断るのに。","If I were you I would turn down the offer."],
+["2","19","仮定法過去","もし彼女が時間があれば、もっと本を読むのに。","If she had time she would read more books."],
+["2","19","仮定法過去","もし私が鳥なら、空を飛べるのに。","If I were a bird I could fly in the sky."],
+["2","19","仮定法過去","もし彼がもっと注意していれば、ミスをしないのに。","If he were more careful he wouldn't make mistakes."],
+["2","19","仮定法過去","もし私が早く起きられれば、運動できるのに。","If I could get up early I would exercise."],
+["2","19","仮定法過去","もし彼女がもっと練習すれば、うまくなれるのに。","If she practiced more she could get better."],
+["2","19","仮定法過去","もし彼がその話を知っていれば、驚かないのに。","If he knew the story he wouldn't be surprised."],
+["2","19","仮定法過去","もし私があなたなら、もっと慎重に考えるのに。","If I were you I would think more carefully."],
+["2","20","仮定法過去完了","もし私がもっと勉強していれば、合格できたのに。","If I had studied harder I could have passed."],
+["2","20","仮定法過去完了","もし彼が早く来ていれば、間に合ったのに。","If he had come earlier he would have been on time."],
+["2","20","仮定法過去完了","もし彼女がもっと注意していれば、失敗しなかったのに。","If she had been more careful she wouldn't have failed."],
+["2","20","仮定法過去完了","もし私がその仕事を引き受けていれば、今頃違っていたのに。","If I had taken that job things would be different now."],
+["2","20","仮定法過去完了","もし彼が傘を持っていれば、濡れなかったのに。","If he had had an umbrella he wouldn't have gotten wet."],
+["2","20","仮定法過去完了","もし私がその情報を知っていれば、もっとうまく対応できたのに。","If I had known that information I could have handled it better."],
+["2","20","仮定法過去完了","もし彼女が医者に行っていれば、もっと早く回復していたのに。","If she had gone to the doctor she would have recovered sooner."],
+["2","20","仮定法過去完了","もし彼が計画通りに動いていれば、成功していたのに。","If he had followed the plan he would have succeeded."],
+["2","20","仮定法過去完了","もし私がもっと早く気づいていれば、防げたのに。","If I had noticed sooner I could have prevented it."],
+["2","20","仮定法過去完了","もし彼らが協力していれば、プロジェクトは完成していたのに。","If they had cooperated the project would have been completed."],
+["3","1","分詞（現在分詞）","窓の外を見ている男性は私の上司です。","The man looking out the window is my boss."],
+["3","1","分詞（現在分詞）","廊下を歩いている女性は誰ですか？","Who is the woman walking down the hallway?"],
+["3","1","分詞（現在分詞）","泣いている赤ちゃんをあやしてあげました。","I comforted the crying baby."],
+["3","1","分詞（現在分詞）","向こうで遊んでいる子供たちは私の生徒です。","The children playing over there are my students."],
+["3","1","分詞（現在分詞）","彼は音楽を聴きながら勉強しています。","He is studying listening to music."],
+["3","1","分詞（現在分詞）","その走っている犬は私のペットです。","The running dog is my pet."],
+["3","1","分詞（現在分詞）","彼女は微笑みながら私に近づいてきました。","She came toward me smiling."],
+["3","1","分詞（現在分詞）","道の向こうから歩いてくる人は彼の父親です。","The person walking from across the street is his father."],
+["3","2","分詞（過去分詞）","机の上に置いてある本は私のものです。","The book placed on the desk is mine."],
+["3","2","分詞（過去分詞）","彼女は疲れた表情をしていました。","She had a tired expression on her face."],
+["3","2","分詞（過去分詞）","その壊れた椅子は修理が必要です。","The broken chair needs to be repaired."],
+["3","2","分詞（過去分詞）","日本で作られた製品は質が高いです。","Products made in Japan are of high quality."],
+["3","2","分詞（過去分詞）","彼は先生に叱られた生徒です。","He is the student scolded by the teacher."],
+["3","2","分詞（過去分詞）","その古い建物はもう使われていません。","The old building is no longer used."],
+["3","2","分詞（過去分詞）","彼女は感動した表情で話を聞いていました。","She was listening with a moved expression."],
+["3","2","分詞（過去分詞）","その汚染された水は飲めません。","The contaminated water cannot be drunk."],
+["3","2","分詞（過去分詞）","彼は尊敬された教師として知られています。","He is known as a respected teacher."],
+["3","3","分詞構文","音楽を聴きながら、彼女は料理をしました。","Listening to music she cooked."],
+["3","3","分詞構文","仕事を終えて、私は家に帰りました。","Finishing my work I went home."],
+["3","3","分詞構文","疲れていたので、彼はすぐに眠りました。","Being tired he fell asleep immediately."],
+["3","3","分詞構文","彼女は笑いながら私に話しかけました。","Smiling she spoke to me."],
+["3","3","分詞構文","問題を解決した後、私たちは休憩しました。","Having solved the problem we took a break."],
+["3","3","分詞構文","道を間違えたので、私は遅刻しました。","Taking the wrong road I was late."],
+["3","3","分詞構文","本を読みながら、彼はコーヒーを飲んでいました。","Reading a book he was drinking coffee."],
+["3","3","分詞構文","彼女は友達に会ったとき、驚きました。","Meeting her friend she was surprised."],
+["3","3","分詞構文","彼は昔のことを思い出して、悲しくなりました。","Remembering the past he became sad."],
+["3","4","不定詞の発展","あなたにここに来てほしいです。","I want you to come here."],
+["3","4","不定詞の発展","彼に早く回復してほしいです。","I hope for him to recover soon."],
+["3","4","不定詞の発展","彼女は息子に医者になることを望んでいます。","She wants her son to become a doctor."],
+["3","4","不定詞の発展","先生は生徒たちに真剣に勉強してほしいと思っています。","The teacher wants the students to study seriously."],
+["3","4","不定詞の発展","私は彼女に正直でいてほしいです。","I want her to be honest."],
+["3","4","不定詞の発展","私は友達に私の話を聞いてほしいです。","I want my friend to listen to my story."],
+["3","4","不定詞の発展","私はあなたに成功してほしいです。","I want you to succeed."],
+["3","4","不定詞の発展","彼は彼女に計画を説明してほしいと頼みました。","He asked her to explain the plan."],
+["3","5","疑問詞+to不定詞","どうやってその問題を解けばいいか分かりません。","I don't know how to solve the problem."],
+["3","5","疑問詞+to不定詞","何を準備すればいいか教えてください。","Please tell me what to prepare."],
+["3","5","疑問詞+to不定詞","どこに行けばいいか分かりません。","I don't know where to go."],
+["3","5","疑問詞+to不定詞","いつ出発すればいいか決めていません。","I have not decided when to leave."],
+["3","5","疑問詞+to不定詞","どちらを選べばいいか迷っています。","I am wondering which to choose."],
+["3","5","疑問詞+to不定詞","誰に頼めばいいか分かりません。","I don't know who to ask."],
+["3","5","疑問詞+to不定詞","どんな服を着ていけばいいか分かりません。","I don't know what to wear."],
+["3","5","疑問詞+to不定詞","どうやって謝ればいいか分かりません。","I don't know how to apologize."],
+["3","5","疑問詞+to不定詞","どこで食事すればいいか教えてもらえますか？","Can you tell me where to eat?"],
+["3","6","接続詞（従位接続詞）","雨が降ったので、試合は中止になりました。","Because it rained the game was cancelled."],
+["3","6","接続詞（従位接続詞）","彼が来るまで、私は待っていました。","I waited until he came."],
+["3","6","接続詞（従位接続詞）","もし明日晴れれば、公園へ行きましょう。","If it is sunny tomorrow let's go to the park."],
+["3","6","接続詞（従位接続詞）","彼女が戻ったとき、私はちょうど準備を終えていました。","When she came back I had just finished getting ready."],
+["3","6","接続詞（従位接続詞）","試験が終わったら、旅行に行きます。","After the exam is over I will go on a trip."],
+["3","6","接続詞（従位接続詞）","忙しいけれど、毎日運動しています。","Although I am busy I exercise every day."],
+["3","6","接続詞（従位接続詞）","彼が説明してくれたので、問題が理解できました。","Because he explained I was able to understand the problem."],
+["3","6","接続詞（従位接続詞）","彼女が来る前に、準備を済ませておきます。","I will finish preparing before she comes."],
+["3","6","接続詞（従位接続詞）","疲れていても、仕事を続けました。","Even though I was tired I continued working."],
+["3","6","接続詞（従位接続詞）","電話がかかってきたとき、私は会議中でした。","When the phone rang I was in a meeting."],
+["3","7","間接疑問文","彼がどこに住んでいるか知っていますか？","Do you know where he lives?"],
+["3","7","間接疑問文","彼女が何を考えているかわかりません。","I don't know what she is thinking."],
+["3","7","間接疑問文","あなたはなぜ彼が怒っているか知っていますか？","Do you know why he is angry?"],
+["3","7","間接疑問文","その会議がいつ始まるか教えてもらえますか？","Could you tell me when the meeting starts?"],
+["3","7","間接疑問文","彼女がどうやってその問題を解いたか不思議です。","I wonder how she solved the problem."],
+["3","7","間接疑問文","彼がどの電車に乗ったか分かりません。","I don't know which train he took."],
+["3","7","間接疑問文","その店が何時に閉まるか知っていますか？","Do you know what time the store closes?"],
+["3","7","間接疑問文","彼女が誰と話していたか気になります。","I wonder who she was talking with."],
+["3","7","間接疑問文","そのプロジェクトがどのくらいかかるか分かりません。","I don't know how long the project will take."],
+["3","7","間接疑問文","あなたは彼がどのくらい待っているか知っていますか？","Do you know how long he has been waiting?"],
+["3","8","関係代名詞（主格・人）","昨日私に電話してきた人は彼女です。","She is the person who called me yesterday."],
+["3","8","関係代名詞（主格・人）","その問題を最初に解いた人は彼です。","He is the person who solved the problem first."],
+["3","8","関係代名詞（主格・人）","私を助けてくれた人を知っていますか？","Do you know the person who helped me?"],
+["3","8","関係代名詞（主格・人）","この仕事に応募した人は5人います。","There are five people who applied for this job."],
+["3","8","関係代名詞（主格・人）","私の隣に住んでいる人はとても親切です。","The person who lives next to me is very kind."],
+["3","8","関係代名詞（主格・人）","今朝一番に到着した人は彼女です。","She is the person who arrived first this morning."],
+["3","9","関係代名詞（主格・人以外）","昨日買った本はとても面白いです。","The book that I bought yesterday is very interesting."],
+["3","9","関係代名詞（主格・人以外）","テーブルの上に置いてある書類を取ってもらえますか？","Can you get the document that is on the table?"],
+["3","9","関係代名詞（主格・人以外）","窓の外を飛んでいる鳥を見てください。","Look at the bird that is flying outside the window."],
+["3","9","関係代名詞（主格・人以外）","壁に貼ってあるポスターは私が作りました。","The poster that is on the wall was made by me."],
+["3","9","関係代名詞（主格・人以外）","毎朝飲むコーヒーが私の楽しみです。","The coffee that I drink every morning is my pleasure."],
+["3","9","関係代名詞（主格・人以外）","机の上にある赤いペンは私のです。","The red pen that is on the desk is mine."],
+["3","9","関係代名詞（主格・人以外）","彼が作ったケーキはとても美味しかったです。","The cake that he made was very delicious."],
+["3","9","関係代名詞（主格・人以外）","昨夜起きた事故はとても深刻でした。","The accident that happened last night was very serious."],
+["3","9","関係代名詞（主格・人以外）","その会社が作った製品は世界中で使われています。","The product that the company made is used all over the world."],
+["3","10","関係代名詞（目的格・人）","私が会いたい人は彼女です。","The person that I want to meet is her."],
+["3","10","関係代名詞（目的格・人）","昨日話した人のことを覚えていますか？","Do you remember the person that I talked to yesterday?"],
+["3","10","関係代名詞（目的格・人）","私が最も信頼している人はあなたです。","The person that I trust the most is you."],
+["3","10","関係代名詞（目的格・人）","私が昨日助けた人はとても感謝してくれました。","The person that I helped yesterday thanked me very much."],
+["3","10","関係代名詞（目的格・人）","彼が招待した全員が出席しました。","Everyone that he invited attended."],
+["3","10","関係代名詞（目的格・人）","私が一番会いたかった人はあなたです。","You are the person that I wanted to meet the most."],
+["3","11","関係代名詞（目的格・人以外）","私が昨日見た映画はとても感動的でした。","The movie that I watched yesterday was very moving."],
+["3","11","関係代名詞（目的格・人以外）","私が注文した料理がまだ来ていません。","The dish that I ordered hasn't come yet."],
+["3","11","関係代名詞（目的格・人以外）","私たちが利用しているアプリはとても便利です。","The app that we use is very convenient."],
+["3","11","関係代名詞（目的格・人以外）","彼が書いた報告書は上司に褒められました。","The report that he wrote was praised by his boss."],
+["3","11","関係代名詞（目的格・人以外）","私が借りた本はまだ返していません。","The book that I borrowed has not been returned yet."],
+["3","11","関係代名詞（目的格・人以外）","彼女が撮った写真はとても綺麗でした。","The photos that she took were very beautiful."],
+["3","11","関係代名詞（目的格・人以外）","彼が提案した方法はとても効果的です。","The method that he suggested is very effective."],
+["3","11","関係代名詞（目的格・人以外）","私が一番気に入っているカフェはここです。","The cafe that I like the most is here."],
+["3","12","関係代名詞（what）","彼が言ったことが理解できません。","I can't understand what he said."],
+["3","12","関係代名詞（what）","彼女がほしいものを教えてもらえますか？","Can you tell me what she wants?"],
+["3","12","関係代名詞（what）","彼が何をしたいのかわかりません。","I don't know what he wants to do."],
+["3","12","関係代名詞（what）","大切なのは諦めないことです。","What is important is not giving up."],
+["3","12","関係代名詞（what）","彼女が作ったものはとても美味しかったです。","What she made was very delicious."],
+["3","12","関係代名詞（what）","私が言いたいことはそういうことではありません。","What I want to say is not that."],
+["3","12","関係代名詞（what）","彼の言ったことは全て正しかったです。","What he said was all correct."],
+["3","12","関係代名詞（what）","彼女が感じていることを理解しようとしています。","I am trying to understand what she is feeling."],
+["3","12","関係代名詞（what）","必要なのは少しの勇気だけです。","What you need is just a little courage."],
+["3","13","関係副詞/whose","私が生まれた町はとても小さいです。","The town where I was born is very small."],
+["3","13","関係副詞/whose","彼女が働いている会社は大阪にあります。","The company where she works is in Osaka."],
+["3","13","関係副詞/whose","私たちが初めて会った日のことを覚えています。","I remember the day when we first met."],
+["3","13","関係副詞/whose","彼が最も忙しかった時期は去年の秋でした。","The time when he was the busiest was last autumn."],
+["3","13","関係副詞/whose","バッグが赤い女性が私の上司です。","The woman whose bag is red is my boss."],
+["3","13","関係副詞/whose","彼女が育った場所はとても静かなところです。","The place where she grew up is very quiet."],
+["3","13","関係副詞/whose","意見が参考になった人は彼女です。","She is the person whose opinion was helpful."],
+["3","13","関係副詞/whose","私が一番好きなカフェは駅のそばにあります。","The cafe where I like to go the most is near the station."],
+["3","14","現在完了形（継続）","私は10年間この会社で働いています。","I have worked at this company for ten years."],
+["3","14","現在完了形（継続）","彼女はずっとここに住んでいます。","She has always lived here."],
+["3","14","現在完了形（継続）","私たちは3年間友達です。","We have been friends for three years."],
+["3","14","現在完了形（継続）","彼は先週からずっと病気です。","He has been sick since last week."],
+["3","14","現在完了形（継続）","どのくらいの間、日本語を勉強していますか？","How long have you been studying Japanese?"],
+["3","14","現在完了形（継続）","私は子供のころからピアノを弾いています。","I have been playing the piano since I was a child."],
+["3","14","現在完了形（継続）","私たちは2020年からこのプロジェクトに取り組んでいます。","We have been working on this project since 2020."],
+["3","14","現在完了形（継続）","私は昨日からずっと頭痛がします。","I have had a headache since yesterday."],
+["3","15","現在完了形（完了）","私はちょうど昼食を食べ終えました。","I have just finished eating lunch."],
+["3","15","現在完了形（完了）","彼女はもうそのレポートを提出しました。","She has already submitted the report."],
+["3","15","現在完了形（完了）","電車はもう出発しましたか？","Has the train already departed?"],
+["3","15","現在完了形（完了）","私はまだその本を読んでいません。","I have not read the book yet."],
+["3","15","現在完了形（完了）","彼はちょうど仕事を終えたところです。","He has just finished his work."],
+["3","15","現在完了形（完了）","彼女はもうその映画を見ましたか？","Has she already watched the movie?"],
+["3","15","現在完了形（完了）","私たちはまだ決断を下していません。","We have not made a decision yet."],
+["3","15","現在完了形（完了）","そのメールにはもう返信しました。","I have already replied to the email."],
+["3","15","現在完了形（完了）","彼はまだ到着していません。","He has not arrived yet."],
+["3","15","現在完了形（完了）","彼女はちょうど電話を切ったところです。","She has just hung up the phone."],
+["3","16","現在完了形（経験）","私は一度だけ富士山に登ったことがあります。","I have climbed Mt. Fuji once."],
+["3","16","現在完了形（経験）","あなたはフランス料理を食べたことがありますか？","Have you ever eaten French cuisine?"],
+["3","16","現在完了形（経験）","彼女は一度も海外に行ったことがありません。","She has never been abroad."],
+["3","16","現在完了形（経験）","私は以前その映画を見たことがあります。","I have seen that movie before."],
+["3","16","現在完了形（経験）","あなたはサーフィンをしたことがありますか？","Have you ever tried surfing?"],
+["3","16","現在完了形（経験）","彼は二度同じ間違いをしたことがあります。","He has made the same mistake twice."],
+["3","16","現在完了形（経験）","彼女はその本を何度も読んだことがあります。","She has read that book many times."],
+["3","16","現在完了形（経験）","私は一度だけスカイダイビングをしたことがあります。","I have gone skydiving once."],
+["3","16","現在完了形（経験）","あなたは納豆を食べたことがありますか？","Have you ever eaten natto?"],
+["3","16","現在完了形（経験）","彼は一度もそんなことを言ったことがありません。","He has never said such a thing."],
+["3","17","過去完了形","電車が出発したとき、私たちはもう到着していました。","When the train departed we had already arrived."],
+["3","17","過去完了形","彼が来たとき、映画はもう始まっていました。","When he came the movie had already started."],
+["3","17","過去完了形","彼女は以前その人に会ったことがあると言いました。","She said that she had met that person before."],
+["3","17","過去完了形","私が気づいたとき、彼はもう帰っていました。","When I noticed he had already gone home."],
+["3","17","過去完了形","彼らが試合を始めた時には、雨はもう止んでいました。","When they started the game the rain had already stopped."],
+["3","17","過去完了形","私が電話したとき、彼女はもう仕事を辞めていました。","When I called she had already quit her job."],
+["3","17","過去完了形","私が到着したときには、パーティーはもう終わっていました。","When I arrived the party had already ended."],
+["3","17","過去完了形","彼女がそのニュースを聞いたとき、彼はもう亡くなっていました。","When she heard the news he had already passed away."],
+["3","17","過去完了形","彼らが気づいたとき、締め切りはもう過ぎていました。","When they realized the deadline had already passed."],
+["3","18","過去完了進行形/未来完了形","彼が来たとき、私は2時間ずっと待っていました。","When he came I had been waiting for two hours."],
+["3","18","過去完了進行形/未来完了形","彼女は倒れる前に3日間休まずに働いていました。","She had been working for three days without rest before she collapsed."],
+["3","18","過去完了進行形/未来完了形","来年の春には、私はここに5年間住んでいることになります。","By next spring I will have lived here for five years."],
+["3","18","過去完了進行形/未来完了形","月曜日までにはその仕事を終わらせているでしょう。","I will have finished the work by Monday."],
+["3","18","過去完了進行形/未来完了形","彼女が到着したとき、私はずっと資料を準備していました。","When she arrived I had been preparing the materials all along."],
+["3","18","過去完了進行形/未来完了形","3時間勉強し続けていたので、頭が痛かったです。","I had been studying for three hours so my head hurt."],
+["3","18","過去完了進行形/未来完了形","来月でこの仕事を始めて10年になります。","By next month I will have been doing this job for ten years."],
+["3","18","過去完了進行形/未来完了形","今年末にはそのプロジェクトが完了しているはずです。","By the end of this year the project will have been completed."],
+["3","18","過去完了進行形/未来完了形","彼は入院する前に、ずっとひどい咳が続いていました。","He had been having a terrible cough before he was hospitalized."],
+["3","19","enough/too/so that","このコーヒーは飲むには熱すぎます。","This coffee is too hot to drink."],
+["3","19","enough/too/so that","彼女は試験に合格できるほど一生懸命勉強しました。","She studied hard enough to pass the exam."],
+["3","19","enough/too/so that","その荷物は一人で運べないほど重かったです。","The luggage was too heavy to carry alone."],
+["3","19","enough/too/so that","彼は自分でその問題を解けるほど賢いです。","He is smart enough to solve the problem on his own."],
+["3","19","enough/too/so that","電車に間に合うように早く起きました。","I got up early so that I could catch the train."],
+["3","19","enough/too/so that","彼女は誰もが彼女に気づくほど大きな声で笑いました。","She laughed so loudly that everyone noticed her."],
+["3","19","enough/too/so that","この問題は初心者には難しすぎます。","This problem is too difficult for beginners."],
+["3","19","enough/too/so that","彼は一人で決断できるほど経験豊富です。","He is experienced enough to make decisions on his own."],
+["3","19","enough/too/so that","私は彼女に理解してもらえるように丁寧に説明しました。","I explained carefully so that she could understand."],
+["3","19","enough/too/so that","そのズボンは私には短すぎて履けません。","The pants are too short for me to wear."]
+];
+
+const QUESTIONS = CSV_DATA.map(r => ({chapter:+r[0],lesson:+r[1],title:r[2],jp:r[3],en:r[4]}));
+const CHAPTERS = {};
+QUESTIONS.forEach(q => {
+  if(!CHAPTERS[q.chapter]) CHAPTERS[q.chapter]={};
+  if(!CHAPTERS[q.chapter][q.lesson]) CHAPTERS[q.chapter][q.lesson]={title:q.title,qs:[]};
+  CHAPTERS[q.chapter][q.lesson].qs.push(q);
+});
+
+let currentMode='lesson', queue=[], qIdx=0, correctCount=0;
+let qJudged=false, qCorrect=false;
+let timerInterval=null, timeLeft=MAX_SEC;
+let recognition=null, isListening=false, isJudging=false;
+let mediaRecorder=null, recordedAudioUrl=null, recordingSession=0;
+let ttsGen=0, ttsEnabled=false;
+let askHistory=[], askContext={};
+let currentTranscript='';
+
+function buildHome(){
+  const list=document.getElementById('chapter-list');
+  list.innerHTML='';
+  Object.keys(CHAPTERS).forEach(ch=>{
+    const block=document.createElement('div');
+    block.className='chapter-block';
+    const head=document.createElement('div');
+    head.className='chapter-head';
+    head.innerHTML=`CHAPTER ${ch} <span class="badge">Ch.${ch}</span>`;
+    block.appendChild(head);
+    Object.keys(CHAPTERS[ch]).forEach(ls=>{
+      const info=CHAPTERS[ch][ls];
+      const btn=document.createElement('button');
+      btn.className='lesson-btn';
+      btn.innerHTML=`<span>${info.title}</span><span class="cnt">${info.qs.length}問</span>`;
+      btn.onclick=()=>startLesson(+ch,+ls);
+      block.appendChild(btn);
+    });
+    list.appendChild(block);
+  });
+}
+
+function setMode(m){
+  currentMode=m;
+  document.getElementById('btn-lesson').classList.toggle('active',m==='lesson');
+  document.getElementById('btn-random').classList.toggle('active',m==='random');
+}
+
+function startLesson(ch,ls){
+  queue=[...CHAPTERS[ch][ls].qs];
+  if(currentMode==='random') shuffle(queue);
+  beginQuiz(`Ch.${ch} · ${CHAPTERS[ch][ls].title}`);
+}
+
+function startRandom(){
+  queue=shuffle([...QUESTIONS]).slice(0,20);
+  beginQuiz('ランダム 20問');
+}
+
+function beginQuiz(title){
+  qIdx=0; correctCount=0;
+  show('quiz');
+  document.getElementById('quiz-title-lbl').textContent=title;
+  loadQuestion();
+}
+
+function loadQuestion(){
+  if(qIdx>=queue.length){showComplete();return;}
+  qJudged=false; qCorrect=false;
+  const q=queue[qIdx];
+  document.getElementById('jp-text').textContent=q.jp;
+  document.getElementById('lesson-tag').textContent=`CHAPTER ${q.chapter} · LESSON ${q.lesson} · ${q.title}`;
+  document.getElementById('quiz-prog-lbl').textContent=`${qIdx+1} / ${queue.length}`;
+  document.getElementById('prog-fill').style.width=`${(qIdx/queue.length)*100}%`;
+  resetMicUI();
+  startListening();
+}
+
+function startTimer(){
+  timeLeft=MAX_SEC; updateRing(MAX_SEC);
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timeLeft--; updateRing(timeLeft);
+    if(timeLeft<=0){clearInterval(timerInterval);autoJudge();}
+  },1000);
+}
+
+function updateRing(sec){
+  document.getElementById('timer-sec').textContent=sec;
+  const offset=CIRC*(1-sec/MAX_SEC);
+  const fg=document.getElementById('ring-fg');
+  fg.style.strokeDashoffset=offset;
+  const p=sec/MAX_SEC;
+  fg.style.stroke=p>0.5?'var(--accent)':p>0.25?'#e8c060':'var(--ng)';
+}
+
+function stopTimer(){clearInterval(timerInterval);}
+
+function initRecognition(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert('音声認識はSafariで開いてください。');return null;}
+  const r=new SR();
+  r.continuous=true; r.interimResults=true; r.lang='en-US';
+  r.onresult=e=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t=e.results[i][0].transcript;
+      if(e.results[i].isFinal) final+=t; else interim+=t;
+    }
+    currentTranscript=(currentTranscript+final).trim();
+    showTranscript(currentTranscript+(interim?' '+interim:''));
+  };
+  r.onerror=e=>{if(e.error!=='no-speech')console.log('SR:',e.error);};
+  r.onend=()=>{if(r===recognition&&isListening&&!isJudging){try{r.start();}catch(e){}}};
+  return r;
+}
+
+function startListening(){
+  currentTranscript=''; showTranscript('');
+  isListening=true; isJudging=false;
+  if(recordedAudioUrl){URL.revokeObjectURL(recordedAudioUrl);recordedAudioUrl=null;}
+  const session=++recordingSession;
+  const chunks=[];
+  const startRecognition=()=>{
+    recognition=initRecognition();
+    if(!recognition)return;
+    try{recognition.start();}catch(e){}
+    setMicState('listening');
+    document.getElementById('retry-btn').disabled=false;
+    startTimer();
+  };
+  navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+    if(session!==recordingSession){stream.getTracks().forEach(t=>t.stop());return;}
+    const mr=new MediaRecorder(stream);
+    mr.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+    mr.onstop=()=>{
+      if(session===recordingSession){
+        const blob=new Blob(chunks,{type:'audio/webm'});
+        recordedAudioUrl=URL.createObjectURL(blob);
+      }
+      stream.getTracks().forEach(t=>t.stop());
+    };
+    mr.start();
+    mediaRecorder=mr;
+    startRecognition();
+  }).catch(()=>{
+    startRecognition();
+  });
+}
+
+function stopListening(){
+  isListening=false; stopTimer();
+  if(recognition){try{recognition.stop();}catch(e){} recognition=null;}
+  if(mediaRecorder&&mediaRecorder.state!=='inactive'){mediaRecorder.stop();mediaRecorder=null;}
+}
+
+function onMicTap(){
+  if(isJudging)return;
+  if(isListening){stopListening();setTimeout(()=>judge(currentTranscript),400);}
+  else{retryQ();}
+}
+
+function autoJudge(){stopListening();setTimeout(()=>judge(currentTranscript),400);}
+
+function retryQ(){
+  stopListening();
+  currentTranscript=''; showTranscript('');
+  resetMicUI(); startListening();
+}
+
+
+async function askAI(){
+  const input=document.getElementById('ask-input');
+  const btn=document.getElementById('ask-send-btn');
+  const resp=document.getElementById('ask-response');
+  const q=input.value.trim();
+  if(!q)return;
+  input.value='';
+  btn.disabled=true;
+  resp.textContent='考え中...';
+  resp.classList.add('visible');
+  const system=`あなたは英語学習アプリのAIアシスタントです。以下の採点セッションの文脈で学習者の質問に日本語で簡潔に答えてください。
+
+【採点セッション情報】
+日本語問題: ${askContext.jp}
+模範解答: ${askContext.en}
+学習者の回答: ${askContext.userAns}
+AIの採点コメント: ${askContext.comment}
+
+「なぜ？」「どうして？」などの短い質問は、直前のAIの採点コメントまたはAIの返答に対する質問として解釈してください。
+日本語で答えてください。`;
+  askHistory.push({role:'user',content:q});
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',max_tokens:400,
+        system,
+        messages:askHistory
+      })
+    });
+    const data=await res.json();
+    const answer=data.content?.[0]?.text||'エラーが発生しました。';
+    askHistory.push({role:'assistant',content:answer});
+    resp.innerHTML=makeWordTokens(answer);
+  }catch(e){
+    askHistory.pop();
+    resp.textContent='エラーが発生しました。';
+  }
+  btn.disabled=false;
+}
+async function judge(transcript){
+  if(isJudging)return;
+  isJudging=true; setMicState('judging');
+  document.getElementById('mic-hint').textContent='判定中...';
+  const q=queue[qIdx];
+  const answer=transcript.trim().replace(/^./,c=>c.toUpperCase());
+  const norm=s=>s.toLowerCase().replace(/[^\w\s]/g,'').replace(/\s+/g,' ').trim();
+  const compact=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(norm(answer)===norm(q.en)||compact(answer)===compact(q.en)){showResult('perfect',answer,q.en,'完璧な一致！素晴らしい！');return;}
+  if(!answer){showResult('wrong','（認識できませんでした）',q.en,'音声が認識されませんでした。もう一度試しましょう。');return;}
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',max_tokens:100,
+        messages:[{role:'user',content:`英語スピーキング練習の採点をしてください。\n日本語問題:${q.jp}\n模範解答:${q.en}\n学習者の回答:${answer}\n\n【採点ルール】\n・level="perfect":模範解答と全く同じ意味・表現で完璧\n・level="good":意味は通じるが、より一般的・自然な表現が模範解答にある場合。その場合コメントで「〇〇の方がより自然です」と教える\n・level="wrong":意味が伝わらない、または大きな文法ミスがある\n・コメントは回答に実際に存在する誤りや改善点のみ指摘すること\n・存在しない誤りや、既に正しい部分への指摘は絶対にしない\n\nJSONのみ返答:{"level":"perfect"/"good"/"wrong","comment":"日本語30字以内"}`}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.[0]?.text||'{}';
+    const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+    const lv=parsed.level||'wrong';
+    showResult(lv,answer,q.en,parsed.comment||(lv==='wrong'?'もう少し練習しましょう。':'よくできました！'));
+  }catch(e){
+    showResult('wrong',answer,q.en,'APIエラー。APIキーを確認してください。');
+  }
+}
+
+function playCorrect(cb){
+  const a=new Audio('data:audio/mp3;base64,SUQzAwAAAAAPdlRQRTEAAAAVAAAB//5PAHQAbwBMAG8AZwBpAGMAAABUSVQyAAAANQAAAf/+UQB1AGkAegAtAEQAaQBuAGcAXwBEAG8AbgBnADAAMgAtADEAKABGAGEAcwB0ACkAAABUQUxCAAAAGwAAAf/+TwB0AG8ATABvAGcAaQBjAC0AUwBFAAAAQ09NTQAAAAwAAAFlbmf//gAA//4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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');if(cb)a.onended=cb;a.play();
+}
+function playWrong(cb){
+  const a=new Audio('data:audio/mp3;base64,SUQzAwAAAAAPdlRQRTEAAAAVAAAB//5PAHQAbwBMAG8AZwBpAGMAAABUSVQyAAAAMQAAAf/+UQB1AGkAegAtAEIAdQB6AHoAZQByADAAMgAtADQAKABNAHUAbAB0AGkAKQAAAFRBTEIAAAAbAAAB//5PAHQAbwBMAG8AZwBpAGMALQBTAEUAAABDT01NAAAADAAAAWVuZ//+AAD//gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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B3/GXUTyku//2/////qVTEFNRTMuOTkuNVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy45OS41VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+1Bk6IGQ4wLHyAYIADDgGLEAAAAFHAEYoAAAAHmNI6QAjeBVVVVVVVVVVVVVVUxBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuOTkuNVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy45OS41VVVVVVVVVVVVVVVVVVVV//tAZPQJshYARIAAAAArQBixAAAAAuABGsAAAAAogCNUAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuOTkuNVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+xBk5g/wAAB/gAAACBBACMUAAAAAAAH+AAAAIAAAP8AAAARVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy45OS41VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7EETdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuOTkuNVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAARVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy45OS41VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7EETdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuOTkuNVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+xBE3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAARVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy45OS41VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuOTkuNVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAARVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVMQU1FMy45OS41VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjk5LjVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEVVVVVVVVVVVVVVVVVev+//69CP/0/s9/17W/////7f9CTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQRN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk54/wAAB/gAAACBOgGKAAAAAAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQRN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBE3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EETdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuOTkuNaqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpMQU1FMy45OS41qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqkxBTUUzLjk5LjWqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EETdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQZN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqr/+xBk3Y/wAAB/gAAACAAAD/AAAAEAAAH+AAAAIAAAP8AAAASqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqv/7EGTdj/AAAH+AAAAIAAAP8AAAAQAAAf4AAAAgAAA/wAAABKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQRN2P8AAAf4AAAAgAAA/wAAABAAAB/gAAACAAAD/AAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqo=');if(cb)a.onended=cb;a.play();
+}
+
+function speakText(text){
+  if(!ttsEnabled)return;
+  window.speechSynthesis.cancel();
+  const gen=++ttsGen;
+  setTimeout(()=>{
+    if(gen!==ttsGen||!ttsEnabled)return;
+    const utt=new SpeechSynthesisUtterance(text);
+    utt.lang='en-US'; utt.rate=0.88;
+    const voices=window.speechSynthesis.getVoices();
+    const voice=voices.find(vv=>vv.lang==='en-US'&&/Samantha|Alex|Google US|Aaron|Fred/.test(vv.name))
+               ||voices.find(vv=>vv.lang==='en-US');
+    if(voice)utt.voice=voice;
+    window.speechSynthesis.speak(utt);
+  },80);
+}
+function speakModel(text){speakText(text);}
+function showResult(level,userAns,modelAns,comment){
+  ttsEnabled=true;
+  const isCorrect=level==='perfect'||level==='good';
+  if(qJudged&&qCorrect)correctCount--;
+  if(isCorrect){correctCount++;playCorrect(()=>speakText(modelAns));}else{playWrong(()=>speakText(modelAns));}
+  qJudged=true; qCorrect=isCorrect;
+  const icon=document.getElementById('res-icon');
+  icon.textContent=isCorrect?'○':'✕';
+  icon.style.color=level==='perfect'?'var(--ok)':level==='good'?'var(--good)':'var(--ng)';
+  const v=document.getElementById('res-verdict');
+  v.textContent=level==='perfect'?'Excellent!':level==='good'?'Good!':'Keep going!';
+  v.className='result-verdict '+(level==='perfect'?'ok':level==='good'?'good':'ng');
+  document.getElementById('res-your').innerHTML=userAns?makeWordTokens(userAns):'（なし）';
+  document.getElementById('speak-your-btn').onclick=()=>{if(recordedAudioUrl){new Audio(recordedAudioUrl).play();}else{speakText(userAns||'');}};
+  document.getElementById('speak-model-btn').onclick=()=>speakText(modelAns);
+  document.getElementById('res-model').innerHTML=makeWordTokens(modelAns);
+  document.getElementById('res-comment').innerHTML=makeWordTokens(comment);
+  askHistory=[];
+  askContext={jp:queue[qIdx].jp,en:queue[qIdx].en,userAns,comment};
+  document.getElementById('ask-input').value='';
+  document.getElementById('ask-response').classList.remove('visible');
+  document.getElementById('ask-response').textContent='';
+  document.getElementById('res-next-btn').textContent=qIdx+1>=queue.length?'完了':'次へ →';
+  document.getElementById('result-overlay').classList.remove('hidden');
+}
+
+function nextQ(){
+  ttsEnabled=false;
+  ttsGen++;
+  window.speechSynthesis.cancel();
+  document.getElementById('result-overlay').classList.add('hidden');
+  qIdx++; loadQuestion();
+}
+
+function retryFromResult(){
+  document.getElementById('result-overlay').classList.add('hidden');
+  isJudging=false; retryQ();
+}
+
+function showComplete(){
+  stopListening();
+  const rate=queue.length?Math.round(correctCount/queue.length*100):0;
+  document.getElementById('s-correct').textContent=correctCount;
+  document.getElementById('s-total').textContent=queue.length;
+  document.getElementById('s-rate').textContent=rate+'%';
+  show('complete');
+}
+
+function setMicState(state){
+  const btn=document.getElementById('mic-btn');
+  btn.className='mic-btn '+state;
+  const hint=document.getElementById('mic-hint');
+  if(state==='listening'){btn.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>`;hint.textContent='タップで判定';}
+  else if(state==='idle'){btn.innerHTML=`<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;hint.textContent='タップして録音開始';}
+  else{btn.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;hint.textContent='判定中...';}
+}
+
+function resetMicUI(){
+  isJudging=false; isListening=false;
+  setMicState('idle');
+  document.getElementById('retry-btn').disabled=true;
+  updateRing(MAX_SEC);
+}
+
+function showTranscript(text){
+  const box=document.getElementById('transcript-box');
+  const txt=document.getElementById('transcript-txt');
+  const ph=document.getElementById('transcript-ph');
+  if(text){txt.textContent=text;ph.style.display='none';box.classList.add('active');}
+  else{txt.textContent='';ph.style.display='';box.classList.remove('active');}
+}
+
+function show(id){
+  ['home','quiz','complete','vocab'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden',s!==id);
+  });
+}
+
+function goHome(){
+  stopListening();
+  document.getElementById('result-overlay').classList.add('hidden');
+  updateVocabBadge();
+  show('home');
+}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+// ── VOCAB ──────────────────────────────────────────
+function getVocab(){try{return JSON.parse(localStorage.getItem('lilac_vocab')||'[]');}catch{return[];}}
+function setVocab(list){localStorage.setItem('lilac_vocab',JSON.stringify(list));}
+
+function updateVocabBadge(){
+  const n=getVocab().length;
+  const b=document.getElementById('vocab-badge');
+  if(b)b.textContent=n||'0';
+}
+
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('word-toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function makeWordTokens(text){
+  const vocab=getVocab();
+  return escHtml(text).replace(/([a-zA-Z][a-zA-Z’'-]*)/g,(m)=>{
+    const clean=m.replace(/[’']/g,"'").replace(/^['-]+|['-]+$/g,'').toLowerCase();
+    if(!clean)return m;
+    const saved=vocab.some(e=>e.word.toLowerCase()===clean);
+    return `<span class="wt${saved?' saved':''}" data-w="${clean}" onclick="saveWord(this)">${m}</span>`;
+  });
+}
+
+async function saveWord(el){
+  const word=el.dataset.w;
+  if(!word)return;
+  const vocab=getVocab();
+  if(vocab.some(e=>e.word.toLowerCase()===word.toLowerCase())){
+    showToast('すでに保存済み: '+word);
+    return;
+  }
+  el.classList.add('saving');
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',max_tokens:30,
+        messages:[{role:'user',content:`次の英単語の日本語訳を1〜4語で返してください。JSONのみ: {"meaning":"日本語訳"}\n単語: ${word}`}]
+      })
+    });
+    const data=await res.json();
+    const txt=data.content?.[0]?.text||'{}';
+    const parsed=JSON.parse(txt.replace(/```json|```/g,'').trim());
+    const meaning=parsed.meaning||word;
+    vocab.unshift({word,meaning,addedAt:Date.now()});
+    setVocab(vocab);
+    updateVocabBadge();
+    el.classList.remove('saving');
+    el.classList.add('saved');
+    document.querySelectorAll(`.wt[data-w="${word}"]`).forEach(s=>{s.classList.add('saved');s.classList.remove('saving');});
+    showToast('✓  '+word+'  →  '+meaning);
+  }catch(e){
+    el.classList.remove('saving');
+    showToast('保存に失敗しました');
+  }
+}
+
+function showVocabScreen(){
+  renderVocab();
+  show('vocab');
+}
+
+const PENCIL_SVG=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+const CROSS_SVG=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+const CHECK_SVG=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+function renderVocab(){
+  const list=getVocab();
+  document.getElementById('vocab-count').textContent=list.length?list.length+'語 保存済み':'';
+  const el=document.getElementById('vocab-list');
+  if(!list.length){
+    el.innerHTML='<div class="vocab-empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>まだ単語が保存されていません。<br>結果画面の英単語をタップして<br>単語帳に追加しましょう！</div>';
+    return;
+  }
+  el.innerHTML=list.map((e,i)=>`<div class="vocab-card" id="vc-${i}">
+    <div class="vocab-word">${escHtml(e.word)}</div>
+    <div class="vocab-meaning">${escHtml(e.meaning)}</div>
+    <button class="vocab-edit-btn" onclick="startEditVocab(${i})" title="編集">${PENCIL_SVG}</button>
+    <button class="vocab-del" onclick="deleteVocabIdx(${i})" title="削除">${CROSS_SVG}</button>
+  </div>`).join('');
+}
+
+function startEditVocab(idx){
+  const list=getVocab();
+  const e=list[idx];
+  if(!e)return;
+  const card=document.getElementById('vc-'+idx);
+  if(!card)return;
+  card.classList.add('editing');
+  card.innerHTML=`
+    <input class="vocab-input" id="ve-word-${idx}" value="${escHtml(e.word)}" placeholder="フレーズ・単語" style="flex:0 0 110px"/>
+    <input class="vocab-input" id="ve-meaning-${idx}" value="${escHtml(e.meaning)}" placeholder="意味" style="flex:1"/>
+    <button class="vocab-ok-btn" onclick="confirmEditVocab(${idx})" title="保存">${CHECK_SVG}</button>
+    <button class="vocab-del" onclick="renderVocab()" title="キャンセル">${CROSS_SVG}</button>`;
+  document.getElementById('ve-word-'+idx).focus();
+}
+
+function confirmEditVocab(idx){
+  const word=(document.getElementById('ve-word-'+idx).value||'').trim();
+  const meaning=(document.getElementById('ve-meaning-'+idx).value||'').trim();
+  if(!word)return;
+  const list=getVocab();
+  list[idx]={...list[idx],word,meaning:meaning||list[idx].meaning};
+  setVocab(list);
+  renderVocab();
+}
+
+function deleteVocabIdx(idx){
+  const list=getVocab();
+  const card=document.getElementById('vc-'+idx);
+  const doDelete=()=>{list.splice(idx,1);setVocab(list);updateVocabBadge();renderVocab();};
+  if(card){card.style.transition='opacity .18s,transform .18s';card.style.opacity='0';card.style.transform='translateX(20px)';setTimeout(doDelete,200);}
+  else doDelete();
+}
+
+async function addVocabManual(){
+  const wordEl=document.getElementById('vadd-word');
+  const meaningEl=document.getElementById('vadd-meaning');
+  const btn=document.getElementById('vadd-btn');
+  const word=wordEl.value.trim();
+  if(!word)return;
+  let meaning=meaningEl.value.trim();
+  const list=getVocab();
+  if(list.some(e=>e.word.toLowerCase()===word.toLowerCase())){
+    showToast('すでに保存済み: '+word);return;
+  }
+  btn.disabled=true; btn.textContent='取得中…';
+  if(!meaning){
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:30,
+          messages:[{role:'user',content:`次の英語フレーズ・単語の日本語訳を1〜5語で返してください。JSONのみ: {"meaning":"日本語訳"}\nフレーズ: ${word}`}]})
+      });
+      const data=await res.json();
+      const txt=data.content?.[0]?.text||'{}';
+      meaning=JSON.parse(txt.replace(/```json|```/g,'').trim()).meaning||word;
+    }catch{meaning='';}
+  }
+  list.unshift({word,meaning:meaning||'',addedAt:Date.now()});
+  setVocab(list); updateVocabBadge(); renderVocab();
+  wordEl.value=''; meaningEl.value='';
+  btn.disabled=false; btn.textContent='+ 追加';
+  showToast('✓  '+word+(meaning?'  →  '+meaning:''));
+}
+
+function confirmClearVocab(){
+  if(!getVocab().length)return;
+  if(confirm('全ての単語を削除しますか？')){setVocab([]);updateVocabBadge();renderVocab();}
+}
+// ────────────────────────────────────────────────────
+
+buildHome();
+updateVocabBadge();
+</script>
+</body>
+</html>
