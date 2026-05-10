@@ -895,7 +895,11 @@ function loadQuestion(){
   document.getElementById('quiz-prog-lbl').textContent=`${qIdx+1} / ${queue.length}`;
   document.getElementById('prog-fill').style.width=`${(qIdx/queue.length)*100}%`;
   resetMicUI();
-  startListening();
+  // iOS Safari: recognition.start() requires a direct user gesture and conflicts
+  // with the TTS audio session still releasing after speechSynthesis.cancel().
+  // On iOS we skip auto-start; the mic button tap provides a clean gesture.
+  const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  if(!isIOS) startListening();
 }
 
 function startTimer(){
@@ -933,19 +937,21 @@ function initRecognition(){
     showTranscript(currentTranscript+(interim?' '+interim:''));
   };
   r.onerror=e=>{
-    if(e.error!=='no-speech') console.log('SR:',e.error);
-    // iOS Safari blocks start() without user gesture → show idle so user can tap
+    if(e.error!=='no-speech') console.log('SR error:',e.error);
+    // not-allowed / service-not-allowed: iOS blocked start() → let user tap mic
     if((e.error==='not-allowed'||e.error==='service-not-allowed')&&isListening&&!isJudging){
+      isListening=false;
       setMicState('idle');
     }
   };
   r.onend=()=>{
-    if(r===recognition&&isListening&&!isJudging){
-      try{r.start();}catch(e){
-        // iOS Safari: restart without user gesture failed → show idle state
-        setMicState('idle');
-      }
-    }
+    if(r!==recognition||!isListening||isJudging) return;
+    // iOS Safari: try to restart within the same audio session.
+    // A small delay helps iOS release and re-acquire the audio path.
+    setTimeout(()=>{
+      if(r!==recognition||!isListening||isJudging) return;
+      try{r.start();}catch(e){isListening=false;setMicState('idle');}
+    },200);
   };
   return r;
 }
@@ -968,23 +974,27 @@ function startListening(){
     startTimer();
   }
 
-  // MediaRecorder runs async (audio playback only); OK if delayed or unsupported
-  navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
-    if(session!==recordingSession){stream.getTracks().forEach(t=>t.stop());return;}
-    const mimeType=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
-    let mr;
-    try{mr=new MediaRecorder(stream,{mimeType});}catch(e){mr=new MediaRecorder(stream);}
-    mr.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
-    mr.onstop=()=>{
-      if(session===recordingSession){
-        const blob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});
-        recordedAudioUrl=URL.createObjectURL(blob);
-      }
-      stream.getTracks().forEach(t=>t.stop());
-    };
-    mr.start();
-    mediaRecorder=mr;
-  }).catch(()=>{});
+  // iOS Safari: getUserMedia competes with SpeechRecognition for the microphone,
+  // causing one or both to fail. Skip MediaRecorder on iOS entirely.
+  const isIOSdev=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  if(!isIOSdev){
+    navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+      if(session!==recordingSession){stream.getTracks().forEach(t=>t.stop());return;}
+      const mimeType=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
+      let mr;
+      try{mr=new MediaRecorder(stream,{mimeType});}catch(e){mr=new MediaRecorder(stream);}
+      mr.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+      mr.onstop=()=>{
+        if(session===recordingSession){
+          const blob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});
+          recordedAudioUrl=URL.createObjectURL(blob);
+        }
+        stream.getTracks().forEach(t=>t.stop());
+      };
+      mr.start();
+      mediaRecorder=mr;
+    }).catch(()=>{});
+  }
 }
 
 function stopListening(){
