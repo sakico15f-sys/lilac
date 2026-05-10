@@ -922,21 +922,29 @@ function updateRing(sec){
 
 function stopTimer(){clearInterval(timerInterval);timerInterval=null;}
 
-function dbg(msg){
-  const txt=document.getElementById('transcript-txt');
-  const ph=document.getElementById('transcript-ph');
-  const box=document.getElementById('transcript-box');
-  txt.textContent='['+msg+']';
-  ph.style.display='none';
-  box.classList.add('active');
-}
-
 function initRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){alert('音声認識はSafariで開いてください。');return null;}
   const r=new SR();
   r.continuous=true; r.interimResults=true; r.lang='en-US';
+
+  let resultWatchdog=null;
+  const clearWatchdog=()=>{clearTimeout(resultWatchdog);resultWatchdog=null;};
+  const armWatchdog=()=>{
+    clearWatchdog();
+    // iOS: if onaudiostart fires but no onresult arrives in 5s, the recognition
+    // server has silently stalled (common after Q2). Force a stop→onend→restart
+    // cycle to get a fresh server session, same as the natural cycle on Q1/Q2.
+    resultWatchdog=setTimeout(()=>{
+      if(r===recognition&&isListening&&!isJudging){
+        try{r.stop();}catch(e){}
+      }
+    },5000);
+  };
+
   r.onresult=e=>{
+    clearWatchdog();
+    armWatchdog(); // re-arm: keep resetting if user keeps speaking
     let interim='',final='';
     for(let i=e.resultIndex;i<e.results.length;i++){
       const t=e.results[i][0].transcript;
@@ -945,25 +953,23 @@ function initRecognition(){
     currentTranscript=(currentTranscript+final).trim();
     showTranscript(currentTranscript+(interim?' '+interim:''));
   };
-  r.onstart=()=>{
-    dbg('onstart');
-    if(r===recognition&&isListening&&!timerInterval) startTimer();
-  };
   r.onaudiostart=()=>{
-    dbg('onaudiostart');
+    if(r===recognition&&isListening&&!timerInterval) startTimer();
+    armWatchdog();
   };
   r.onerror=e=>{
-    dbg('onerror:'+e.error);
+    clearWatchdog();
     if(e.error==='aborted') return;
+    console.log('SR:',e.error);
     if(e.error!=='no-speech'&&isListening&&!isJudging){
       stopListening();
       setMicState('idle');
     }
   };
   r.onend=()=>{
-    dbg('onend');
+    clearWatchdog();
     if(r!==recognition||!isListening||isJudging) return;
-    try{r.start();}catch(e){dbg('restart-fail:'+e.message);stopListening();setMicState('idle');}
+    try{r.start();}catch(e){stopListening();setMicState('idle');}
   };
   return r;
 }
@@ -980,13 +986,7 @@ function startListening(){
   // Q2+ because the gesture context expires before the promise resolves.
   recognition=initRecognition();
   if(recognition){
-    try{
-      recognition.start();
-      dbg('start()呼出し完了');
-    }catch(e){
-      isListening=false;
-      dbg('start()例外:'+e.message);
-    }
+    try{recognition.start();}catch(e){isListening=false;}
     if(isListening){
       setMicState('listening');
       document.getElementById('retry-btn').disabled=false;
