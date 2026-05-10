@@ -954,6 +954,7 @@ function initRecognition(){
 }
 
 function startListening(){
+  if(window.speechSynthesis.speaking) window.speechSynthesis.cancel();
   currentTranscript=''; showTranscript('');
   isListening=true; isJudging=false;
   if(recordedAudioUrl){URL.revokeObjectURL(recordedAudioUrl);recordedAudioUrl=null;}
@@ -1117,7 +1118,8 @@ function showResult(level,userAns,modelAns,comment){
   ttsEnabled=true;
   const isCorrect=level==='perfect'||level==='good';
   if(qJudged&&qCorrect)correctCount--;
-  if(isCorrect){correctCount++;playCorrect(()=>speakText(modelAns));}else{playWrong(()=>speakText(modelAns));}
+  const iosNoTTS=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  if(isCorrect){correctCount++;playCorrect(iosNoTTS?null:()=>speakText(modelAns));}else{playWrong(iosNoTTS?null:()=>speakText(modelAns));}
   qJudged=true; qCorrect=isCorrect;
   const icon=document.getElementById('res-icon');
   icon.textContent=isCorrect?'○':'✕';
