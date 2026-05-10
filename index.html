@@ -895,11 +895,9 @@ function loadQuestion(){
   document.getElementById('quiz-prog-lbl').textContent=`${qIdx+1} / ${queue.length}`;
   document.getElementById('prog-fill').style.width=`${(qIdx/queue.length)*100}%`;
   resetMicUI();
-  // iOS Safari: recognition.start() requires a direct user gesture and conflicts
-  // with the TTS audio session still releasing after speechSynthesis.cancel().
-  // On iOS we skip auto-start; the mic button tap provides a clean gesture.
-  const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
-  if(!isIOS) startListening();
+  // iOS Safari: TTSとの競合を避けるため、startListening側でAudioSessionを
+  // 強制的にRecordモードに戻してから認識を開始する。
+  startListening();
 }
 
 function startTimer(){
@@ -954,7 +952,11 @@ function initRecognition(){
 }
 
 function startListening(){
-  if(window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+  // TTSが鳴っている場合は完全に止める。iOSでは cancel() しても
+  // AudioSession の Playback モードが残るため、後段で Record モードに引き戻す。
+  if(window.speechSynthesis.speaking||window.speechSynthesis.pending){
+    window.speechSynthesis.cancel();
+  }
   currentTranscript=''; showTranscript('');
   isListening=true; isJudging=false;
   if(recordedAudioUrl){URL.revokeObjectURL(recordedAudioUrl);recordedAudioUrl=null;}
@@ -971,17 +973,33 @@ function startListening(){
     document.getElementById('retry-btn').disabled=false;
   };
 
-  // getUserMedia serves two purposes:
-  // - Non-iOS: provides audio stream for MediaRecorder playback
-  // - iOS: forces the audio session back to Record mode after speechSynthesis
-  //   has switched it to Playback mode (without this reset, onaudiostart fires
-  //   but the recognition server receives no usable audio from Q2 onwards)
+  // getUserMedia の役割:
+  // - 非iOS: MediaRecorder で再生用音声を録る
+  // - iOS: AudioSession を Playback → Record に戻すために、ストリームを
+  //        AudioContext に実際につないで一瞬動かす(stop() だけだとモードが
+  //        戻らず、Q2以降 onaudiostart は鳴っても認識サーバーに音が届かない)
   navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
     if(session!==recordingSession){stream.getTracks().forEach(t=>t.stop());return;}
     if(isIOS){
-      // On iOS just reset the audio session; release the stream right away
-      stream.getTracks().forEach(t=>t.stop());
-      doStart();
+      // AudioContext を使って明示的にオーディオパイプラインを通す
+      let ac=null;
+      try{
+        const AC=window.AudioContext||window.webkitAudioContext;
+        ac=new AC();
+        const src=ac.createMediaStreamSource(stream);
+        // 無音のGainにつないで音は出さないが、パイプラインは動かす
+        const g=ac.createGain(); g.gain.value=0;
+        src.connect(g); g.connect(ac.destination);
+        // resume() を明示的に呼ぶ(iOS は suspended 状態で生成されることがある)
+        if(ac.state==='suspended'){ ac.resume().catch(()=>{}); }
+      }catch(e){ /* AudioContext が使えない環境は素通し */ }
+      // 250ms 後にストリームと AudioContext を解放してから認識を開始
+      setTimeout(()=>{
+        try{stream.getTracks().forEach(t=>t.stop());}catch(e){}
+        if(ac){try{ac.close();}catch(e){}}
+        // さらに少し待ってから recognition.start()(iOSの状態切替は非同期)
+        setTimeout(doStart,150);
+      },250);
     } else {
       const mimeType=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
       let mr;
@@ -1118,8 +1136,15 @@ function showResult(level,userAns,modelAns,comment){
   ttsEnabled=true;
   const isCorrect=level==='perfect'||level==='good';
   if(qJudged&&qCorrect)correctCount--;
+  // iOS Safari: 結果画面で speechSynthesis.speak() を走らせると AudioSession が
+  // Playback モードに切り替わり、次の問題で recognition が無音しか拾わなくなる。
+  // タップ起動の speak-btn は残し、自動再生だけ抑止する。
   const iosNoTTS=/iPhone|iPad|iPod/.test(navigator.userAgent);
-  if(isCorrect){correctCount++;playCorrect(iosNoTTS?null:()=>speakText(modelAns));}else{playWrong(iosNoTTS?null:()=>speakText(modelAns));}
+  if(isCorrect){correctCount++;playCorrect(null);}else{playWrong(null);}
+  // 非iOSでは少し遅らせて模範解答を読み上げ
+  if(!iosNoTTS){
+    setTimeout(()=>speakText(modelAns), 700);
+  }
   qJudged=true; qCorrect=isCorrect;
   const icon=document.getElementById('res-icon');
   icon.textContent=isCorrect?'○':'✕';
