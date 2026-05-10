@@ -927,31 +927,7 @@ function initRecognition(){
   if(!SR){alert('音声認識はSafariで開いてください。');return null;}
   const r=new SR();
   r.continuous=true; r.interimResults=true; r.lang='en-US';
-
-  // hadResult: once the server returns any transcript, the watchdog is retired
-  // for this session so normal pauses don't trigger false restarts.
-  let hadResult=false;
-  let watchdogCount=0;
-  let resultWatchdog=null;
-  const clearWatchdog=()=>{clearTimeout(resultWatchdog);resultWatchdog=null;};
-  const armWatchdog=()=>{
-    if(hadResult) return;          // server is responding — no need to watch
-    if(watchdogCount>=3) return;   // gave up after 3 forced restarts
-    clearWatchdog();
-    // iOS Q3+ symptom: onaudiostart fires (audio captured) but the server returns
-    // nothing — same stall that Q1/Q2 recover from via the natural onend→restart
-    // cycle.  After 8 s of silence we force that same cycle.
-    resultWatchdog=setTimeout(()=>{
-      if(r===recognition&&isListening&&!isJudging){
-        watchdogCount++;
-        try{r.stop();}catch(e){}
-      }
-    },8000);
-  };
-
   r.onresult=e=>{
-    hadResult=true;
-    clearWatchdog(); // server is alive — disable watchdog permanently for this Q
     let interim='',final='';
     for(let i=e.resultIndex;i<e.results.length;i++){
       const t=e.results[i][0].transcript;
@@ -962,19 +938,15 @@ function initRecognition(){
   };
   r.onaudiostart=()=>{
     if(r===recognition&&isListening&&!timerInterval) startTimer();
-    armWatchdog(); // start watching only if no results yet
   };
   r.onerror=e=>{
-    clearWatchdog();
     if(e.error==='aborted') return;
     console.log('SR:',e.error);
     if(e.error!=='no-speech'&&isListening&&!isJudging){
-      stopListening();
-      setMicState('idle');
+      stopListening(); setMicState('idle');
     }
   };
   r.onend=()=>{
-    clearWatchdog();
     if(r!==recognition||!isListening||isJudging) return;
     try{r.start();}catch(e){stopListening();setMicState('idle');}
   };
@@ -987,25 +959,29 @@ function startListening(){
   if(recordedAudioUrl){URL.revokeObjectURL(recordedAudioUrl);recordedAudioUrl=null;}
   const session=++recordingSession;
   const chunks=[];
+  const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
 
-  // iOS Safari requires recognition.start() to be called synchronously within
-  // a user gesture call stack. Calling it inside getUserMedia().then() fails on
-  // Q2+ because the gesture context expires before the promise resolves.
-  recognition=initRecognition();
-  if(recognition){
-    try{recognition.start();}catch(e){isListening=false;}
-    if(isListening){
-      setMicState('listening');
-      document.getElementById('retry-btn').disabled=false;
-    }
-  }
+  const doStart=()=>{
+    if(session!==recordingSession||!isListening) return;
+    recognition=initRecognition();
+    if(!recognition){isListening=false;return;}
+    try{recognition.start();}catch(e){isListening=false;return;}
+    setMicState('listening');
+    document.getElementById('retry-btn').disabled=false;
+  };
 
-  // iOS Safari: getUserMedia competes with SpeechRecognition for the microphone,
-  // causing one or both to fail. Skip MediaRecorder on iOS entirely.
-  const isIOSdev=/iPhone|iPad|iPod/.test(navigator.userAgent);
-  if(!isIOSdev){
-    navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
-      if(session!==recordingSession){stream.getTracks().forEach(t=>t.stop());return;}
+  // getUserMedia serves two purposes:
+  // - Non-iOS: provides audio stream for MediaRecorder playback
+  // - iOS: forces the audio session back to Record mode after speechSynthesis
+  //   has switched it to Playback mode (without this reset, onaudiostart fires
+  //   but the recognition server receives no usable audio from Q2 onwards)
+  navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+    if(session!==recordingSession){stream.getTracks().forEach(t=>t.stop());return;}
+    if(isIOS){
+      // On iOS just reset the audio session; release the stream right away
+      stream.getTracks().forEach(t=>t.stop());
+      doStart();
+    } else {
       const mimeType=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
       let mr;
       try{mr=new MediaRecorder(stream,{mimeType});}catch(e){mr=new MediaRecorder(stream);}
@@ -1017,10 +993,10 @@ function startListening(){
         }
         stream.getTracks().forEach(t=>t.stop());
       };
-      mr.start();
-      mediaRecorder=mr;
-    }).catch(()=>{});
-  }
+      mr.start(); mediaRecorder=mr;
+      doStart();
+    }
+  }).catch(()=>doStart());
 }
 
 function stopListening(){
