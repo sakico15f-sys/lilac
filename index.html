@@ -929,6 +929,7 @@ function stopTimer(){clearInterval(timerInterval);timerInterval=null;}
 //  - 前の認識が完全に終わる(onend)まで、次の start() を呼ばない
 const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 let srActive=false, srPendingStart=false;
+let lastInterim='';  // 確定前の仮の文字(判定ボタンを押したときの保険)
 
 // 診断ログ: URLの末尾に #debug を付けて開くと画面に表示される
 const DEBUG=location.hash==='#debug';
@@ -952,6 +953,7 @@ function handleResult(e){
     if(e.results[i].isFinal) final+=t; else interim+=t;
   }
   if(final) currentTranscript=(currentTranscript+' '+final).replace(/\s+/g,' ').trim();
+  lastInterim=interim.trim();
   showTranscript((currentTranscript+(interim?' '+interim:'')).trim());
   dbg(`result final="${final}" interim="${interim}"`);
 }
@@ -1025,7 +1027,7 @@ function startListening(){
     window.speechSynthesis.cancel();
   }
   ttsGen++;
-  currentTranscript=''; showTranscript('');
+  currentTranscript=''; lastInterim=''; showTranscript('');
   isListening=true; isJudging=false;
   if(recordedAudioUrl){URL.revokeObjectURL(recordedAudioUrl);recordedAudioUrl=null;}
   const session=++recordingSession;
@@ -1077,13 +1079,36 @@ function stopListening(){
   if(mediaRecorder&&mediaRecorder.state!=='inactive'){mediaRecorder.stop();mediaRecorder=null;}
 }
 
+// 認識を止めて判定する。iPhoneは止めたあとに確定の文字が遅れて届くことがあるので、
+// 認識が終わる(onend)まで最大1.5秒待つ。それでも確定がなければ、画面に出ていた仮の文字を使う。
+let judgePending=false;
+function stopAndJudge(){
+  if(isJudging||judgePending)return;
+  judgePending=true;
+  stopListening();
+  const t0=Date.now();
+  const finish=()=>{
+    judgePending=false;
+    const text=(currentTranscript+' '+lastInterim).replace(/\s+/g,' ').trim();
+    dbg(`judge "${text}" (final="${currentTranscript}" interim="${lastInterim}")`);
+    lastInterim='';
+    judge(text);
+  };
+  if(!IS_IOS){setTimeout(finish,400);return;}
+  const wait=()=>{
+    if(!srActive||Date.now()-t0>1500){finish();return;}
+    setTimeout(wait,100);
+  };
+  setTimeout(wait,100);
+}
+
 function onMicTap(){
-  if(isJudging)return;
-  if(isListening){stopListening();setTimeout(()=>judge(currentTranscript),400);}
+  if(isJudging||judgePending)return;
+  if(isListening){stopAndJudge();}
   else{retryQ();}
 }
 
-function autoJudge(){stopListening();setTimeout(()=>judge(currentTranscript),400);}
+function autoJudge(){stopAndJudge();}
 
 function retryQ(){
   stopListening();
