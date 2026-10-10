@@ -920,20 +920,89 @@ function updateRing(sec){
 
 function stopTimer(){clearInterval(timerInterval);timerInterval=null;}
 
+// ===== 音声認識 =====
+// iPhone(iOS Safari)では以下の方針で動かす:
+//  - 認識インスタンスは1つだけ作って使い回す(毎回 new すると不安定になる)
+//  - continuous=false にし、区切れたら 200ms 後に同じインスタンスで再開する
+//    (continuous=true だと内部バッファが詰まり、2回目以降に文字が返らなくなる)
+//  - getUserMedia / MediaRecorder / AudioContext は使わない(マイクの取り合いを避ける)
+//  - 前の認識が完全に終わる(onend)まで、次の start() を呼ばない
+const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+let srActive=false, srPendingStart=false;
+
+// 診断ログ: URLの末尾に #debug を付けて開くと画面に表示される
+const DEBUG=location.hash==='#debug';
+function dbg(msg){
+  if(!DEBUG)return;
+  let el=document.getElementById('sr-debug');
+  if(!el){
+    el=document.createElement('pre');el.id='sr-debug';
+    el.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;max-height:30vh;overflow:auto;margin:0;padding:8px;font-size:11px;line-height:1.4;background:rgba(0,0,0,.8);color:#9f9;border-radius:8px;z-index:9999;white-space:pre-wrap;pointer-events:none';
+    document.body.appendChild(el);
+  }
+  const t=new Date();const ts=t.toTimeString().slice(0,8)+'.'+String(t.getMilliseconds()).padStart(3,'0');
+  el.textContent+=`${ts} Q${(typeof qIdx==='number'?qIdx+1:'-')} ${msg}\n`;
+  el.scrollTop=el.scrollHeight;
+}
+
+function handleResult(e){
+  let interim='',final='';
+  for(let i=e.resultIndex;i<e.results.length;i++){
+    const t=e.results[i][0].transcript;
+    if(e.results[i].isFinal) final+=t; else interim+=t;
+  }
+  if(final) currentTranscript=(currentTranscript+' '+final).replace(/\s+/g,' ').trim();
+  showTranscript((currentTranscript+(interim?' '+interim:'')).trim());
+  dbg(`result final="${final}" interim="${interim}"`);
+}
+
+// --- iPhone 用: インスタンスを1つだけ作る ---
+function getIOSRecognition(){
+  if(recognition) return recognition;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert('音声認識はSafariで開いてください。');return null;}
+  const r=new SR();
+  r.continuous=false; r.interimResults=true; r.lang='en-US';
+  r.onstart=()=>{srActive=true;dbg('start');};
+  r.onaudiostart=()=>{dbg('audiostart');if(isListening&&!timerInterval) startTimer();};
+  r.onspeechstart=()=>dbg('speechstart');
+  r.onresult=e=>{if(isJudging)return;handleResult(e);};
+  r.onerror=e=>{
+    dbg('error '+e.error);
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+      if(isListening&&!isJudging){stopListening();setMicState('idle');}
+    }
+  };
+  r.onend=()=>{
+    srActive=false;dbg('end');
+    if(srPendingStart){srPendingStart=false;iosStart();return;}
+    // 話している途中で区切れたら、少し待って同じインスタンスで再開
+    if(isListening&&!isJudging){
+      setTimeout(()=>{if(isListening&&!isJudging&&!srActive)iosStart();},200);
+    }
+  };
+  recognition=r;
+  return r;
+}
+function iosStart(){
+  const r=getIOSRecognition(); if(!r) return;
+  if(srActive){
+    // 前の認識がまだ動いている → 止めて、onend を待ってから開始
+    srPendingStart=true; dbg('wait previous end');
+    try{r.stop();}catch(e){}
+    return;
+  }
+  try{r.start();srActive=true;dbg('start() called');}
+  catch(e){dbg('start() threw '+e.name);}
+}
+
+// --- Mac など iPhone 以外: 従来どおり毎回作成 ---
 function initRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){alert('音声認識はSafariで開いてください。');return null;}
   const r=new SR();
   r.continuous=true; r.interimResults=true; r.lang='en-US';
-  r.onresult=e=>{
-    let interim='',final='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const t=e.results[i][0].transcript;
-      if(e.results[i].isFinal) final+=t; else interim+=t;
-    }
-    currentTranscript=(currentTranscript+final).trim();
-    showTranscript(currentTranscript+(interim?' '+interim:''));
-  };
+  r.onresult=e=>{if(r!==recognition&&isJudging)return;handleResult(e);};
   r.onaudiostart=()=>{
     if(r===recognition&&isListening&&!timerInterval) startTimer();
   };
@@ -952,18 +1021,24 @@ function initRecognition(){
 }
 
 function startListening(){
-  // TTSが鳴っている場合は完全に止める。iOSでは cancel() しても
-  // AudioSession の Playback モードが残るため、後段で Record モードに引き戻す。
   if(window.speechSynthesis.speaking||window.speechSynthesis.pending){
     window.speechSynthesis.cancel();
   }
+  ttsGen++;
   currentTranscript=''; showTranscript('');
   isListening=true; isJudging=false;
   if(recordedAudioUrl){URL.revokeObjectURL(recordedAudioUrl);recordedAudioUrl=null;}
   const session=++recordingSession;
-  const chunks=[];
-  const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
 
+  if(IS_IOS){
+    dbg('startListening');
+    iosStart();
+    setMicState('listening');
+    document.getElementById('retry-btn').disabled=false;
+    return;
+  }
+
+  const chunks=[];
   const doStart=()=>{
     if(session!==recordingSession||!isListening) return;
     recognition=initRecognition();
@@ -972,55 +1047,33 @@ function startListening(){
     setMicState('listening');
     document.getElementById('retry-btn').disabled=false;
   };
-
-  // getUserMedia の役割:
-  // - 非iOS: MediaRecorder で再生用音声を録る
-  // - iOS: AudioSession を Playback → Record に戻すために、ストリームを
-  //        AudioContext に実際につないで一瞬動かす(stop() だけだとモードが
-  //        戻らず、Q2以降 onaudiostart は鳴っても認識サーバーに音が届かない)
+  // iPhone 以外: 録音して「自分の回答」を再生できるようにする
   navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
     if(session!==recordingSession){stream.getTracks().forEach(t=>t.stop());return;}
-    if(isIOS){
-      // AudioContext を使って明示的にオーディオパイプラインを通す
-      let ac=null;
-      try{
-        const AC=window.AudioContext||window.webkitAudioContext;
-        ac=new AC();
-        const src=ac.createMediaStreamSource(stream);
-        // 無音のGainにつないで音は出さないが、パイプラインは動かす
-        const g=ac.createGain(); g.gain.value=0;
-        src.connect(g); g.connect(ac.destination);
-        // resume() を明示的に呼ぶ(iOS は suspended 状態で生成されることがある)
-        if(ac.state==='suspended'){ ac.resume().catch(()=>{}); }
-      }catch(e){ /* AudioContext が使えない環境は素通し */ }
-      // 250ms 後にストリームと AudioContext を解放してから認識を開始
-      setTimeout(()=>{
-        try{stream.getTracks().forEach(t=>t.stop());}catch(e){}
-        if(ac){try{ac.close();}catch(e){}}
-        // さらに少し待ってから recognition.start()(iOSの状態切替は非同期)
-        setTimeout(doStart,150);
-      },250);
-    } else {
-      const mimeType=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
-      let mr;
-      try{mr=new MediaRecorder(stream,{mimeType});}catch(e){mr=new MediaRecorder(stream);}
-      mr.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
-      mr.onstop=()=>{
-        if(session===recordingSession){
-          const blob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});
-          recordedAudioUrl=URL.createObjectURL(blob);
-        }
-        stream.getTracks().forEach(t=>t.stop());
-      };
-      mr.start(); mediaRecorder=mr;
-      doStart();
-    }
+    const mimeType=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
+    let mr;
+    try{mr=new MediaRecorder(stream,{mimeType});}catch(e){mr=new MediaRecorder(stream);}
+    mr.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
+    mr.onstop=()=>{
+      if(session===recordingSession){
+        const blob=new Blob(chunks,{type:mr.mimeType||'audio/webm'});
+        recordedAudioUrl=URL.createObjectURL(blob);
+      }
+      stream.getTracks().forEach(t=>t.stop());
+    };
+    mr.start(); mediaRecorder=mr;
+    doStart();
   }).catch(()=>doStart());
 }
 
 function stopListening(){
   isListening=false; stopTimer();
-  if(recognition){try{recognition.stop();}catch(e){} recognition=null;}
+  if(IS_IOS){
+    // インスタンスは捨てずに止めるだけ(使い回すため)
+    if(recognition&&srActive){try{recognition.stop();}catch(e){} dbg('stop() called');}
+  }else{
+    if(recognition){try{recognition.stop();}catch(e){} recognition=null;}
+  }
   if(mediaRecorder&&mediaRecorder.state!=='inactive'){mediaRecorder.stop();mediaRecorder=null;}
 }
 
@@ -1140,7 +1193,8 @@ function showResult(level,userAns,modelAns,comment){
   // Playback モードに切り替わり、次の問題で recognition が無音しか拾わなくなる。
   // タップ起動の speak-btn は残し、自動再生だけ抑止する。
   const iosNoTTS=/iPhone|iPad|iPod/.test(navigator.userAgent);
-  if(isCorrect){correctCount++;playCorrect(null);}else{playWrong(null);}
+  // iPhoneでは効果音も鳴らさない(再生が次の問題の認識に影響するのを避けるため)
+  if(isCorrect){correctCount++;if(!iosNoTTS)playCorrect(null);}else{if(!iosNoTTS)playWrong(null);}
   // 非iOSでは少し遅らせて模範解答を読み上げ
   if(!iosNoTTS){
     setTimeout(()=>speakText(modelAns), 700);
