@@ -932,7 +932,14 @@ let srActive=false, srPendingStart=false;
 let lastInterim='';  // 確定前の仮の文字(判定ボタンを押したときの保険)
 
 // 診断ログ: URLの末尾に #debug を付けて開くと画面に表示される
-const DEBUG=location.hash==='#debug';
+const HASH=location.hash.toLowerCase();
+const DEBUG=HASH.includes('debug');
+// #sfx を付けて開いたときだけ、iPhoneでも効果音を鳴らす実験をする
+const SFX_TEST=HASH.includes('sfx');
+function keepRecordMode(){
+  // 音の扱いを「録音と再生の両方」に固定する(Safariが対応していれば)
+  try{ if(navigator.audioSession){ navigator.audioSession.type='play-and-record'; } }catch(e){}
+}
 function dbg(msg){
   if(!DEBUG)return;
   let el=document.getElementById('sr-debug');
@@ -1033,7 +1040,8 @@ function startListening(){
   const session=++recordingSession;
 
   if(IS_IOS){
-    dbg('startListening');
+    if(SFX_TEST)keepRecordMode();
+    dbg('startListening audioSession='+(navigator.audioSession?navigator.audioSession.type:'none'));
     iosStart();
     setMicState('listening');
     document.getElementById('retry-btn').disabled=false;
@@ -1218,9 +1226,12 @@ function showResult(level,userAns,modelAns,comment){
   // Playback モードに切り替わり、次の問題で recognition が無音しか拾わなくなる。
   // タップ起動の speak-btn は残し、自動再生だけ抑止する。
   const iosNoTTS=/iPhone|iPad|iPod/.test(navigator.userAgent);
-  // 効果音はiPhoneでも鳴らす(使い回し方式にしてから、次の問題の認識に影響しないかテスト中)
-  if(isCorrect){correctCount++;playCorrect(null);}else{playWrong(null);}
-  dbg('effect sound played');
+  // iPhoneでは効果音を鳴らすと次の問題で認識が止まるため、通常は鳴らさない。
+  // URLに #sfx を付けたときだけ、音の扱いを固定したうえで鳴らす(実験)
+  const playSfx=!iosNoTTS||SFX_TEST;
+  if(SFX_TEST)keepRecordMode();
+  if(isCorrect){correctCount++;if(playSfx)playCorrect(null);}else{if(playSfx)playWrong(null);}
+  dbg(playSfx?'effect sound played':'effect sound skipped');
   // 非iOSでは少し遅らせて模範解答を読み上げ
   if(!iosNoTTS){
     setTimeout(()=>speakText(modelAns), 700);
