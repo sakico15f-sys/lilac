@@ -71,6 +71,20 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
 .mic-btn.listening{background:linear-gradient(135deg,#b03090,#d850b0);animation:mpulse 1.1s ease-out infinite}
 .mic-btn.judging{background:var(--card2);border:1.5px solid var(--border);opacity:.55;pointer-events:none}
 .mic-btn:active{transform:scale(.93)}
+/* 判定の演出: 画面がふわっと光る+マークが弾む/揺れる(効果音の代わり) */
+#fb-flash{position:fixed;inset:0;pointer-events:none;z-index:201;opacity:0}
+#fb-flash.perfect{background:radial-gradient(circle at 50% 28%,rgba(0,211,129,.55),transparent 62%)}
+#fb-flash.good{background:radial-gradient(circle at 50% 28%,rgba(208,112,0,.5),transparent 62%)}
+#fb-flash.wrong{background:radial-gradient(circle at 50% 28%,rgba(208,40,88,.5),transparent 62%)}
+#fb-flash.on{animation:fbflash 1s ease-out}
+@keyframes fbflash{0%{opacity:0}14%{opacity:1}100%{opacity:0}}
+.result-badge.pop .result-icon{animation:fbpop .55s cubic-bezier(.3,1.7,.5,1)}
+.result-badge.pop .result-verdict{animation:fbrise .5s ease-out}
+.result-badge.shake{animation:fbshake .5s ease-in-out}
+@keyframes fbpop{0%{transform:scale(.2);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes fbrise{0%{transform:translateY(10px);opacity:0}100%{transform:none;opacity:1}}
+@keyframes fbshake{0%,100%{transform:translateX(0)}18%{transform:translateX(-9px)}36%{transform:translateX(8px)}54%{transform:translateX(-6px)}72%{transform:translateX(4px)}88%{transform:translateX(-2px)}}
+@media (prefers-reduced-motion:reduce){#fb-flash.on,.result-badge.pop .result-icon,.result-badge.pop .result-verdict,.result-badge.shake{animation:none}}
 @keyframes mpulse{0%{box-shadow:0 0 0 0 rgba(192,64,160,.45)}70%{box-shadow:0 0 0 18px transparent}100%{box-shadow:0 0 0 0 transparent}}
 .mic-hint{font-size:11px;color:var(--muted);letter-spacing:.06em;font-family:'Inter',sans-serif}
 
@@ -880,6 +894,7 @@ function startRandom(){
 }
 
 function beginQuiz(title){
+  unlockSpeech();
   qIdx=0; correctCount=0;
   show('quiz');
   document.getElementById('quiz-title-lbl').textContent=title;
@@ -1218,6 +1233,27 @@ function speakText(text){
   },80);
 }
 function speakModel(text){speakText(text);}
+
+// 画面で判定を伝える
+function showFeedback(level){
+  let f=document.getElementById('fb-flash');
+  if(!f){f=document.createElement('div');f.id='fb-flash';document.body.appendChild(f);}
+  const badge=document.querySelector('.result-badge');
+  const kind=level==='perfect'?'perfect':level==='good'?'good':'wrong';
+  f.className=''; badge.classList.remove('pop','shake');
+  void f.offsetWidth; // アニメーションを毎回やり直すため
+  f.className='on '+kind;
+  badge.classList.add(kind==='wrong'?'shake':'pop');
+}
+
+// iPhoneの読み上げは、最初の1回をタップ操作の中で鳴らさないと出ないことがあるため、
+// レッスン開始ボタンを押したときに無音で1回だけ鳴らしておく
+let speechUnlocked=false;
+function unlockSpeech(){
+  if(speechUnlocked||!window.speechSynthesis)return;
+  speechUnlocked=true;
+  try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;window.speechSynthesis.speak(u);dbg('speech unlocked');}catch(e){}
+}
 function showResult(level,userAns,modelAns,comment){
   ttsEnabled=true;
   const isCorrect=level==='perfect'||level==='good';
@@ -1232,6 +1268,9 @@ function showResult(level,userAns,modelAns,comment){
   if(SFX_TEST)keepRecordMode();
   if(isCorrect){correctCount++;if(playSfx)playCorrect(null);}else{if(playSfx)playWrong(null);}
   dbg(playSfx?'effect sound played':'effect sound skipped');
+  // iPhoneでは効果音の代わりに、読み上げ機能で判定をしゃべる(読み上げは認識に影響しないことを確認済み)
+  const verdictWord=level==='perfect'?'Excellent!':level==='good'?'Good!':'Keep going!';
+  if(iosNoTTS&&!SFX_TEST){speakText(verdictWord);dbg('speak verdict '+verdictWord);}
   // 非iOSでは少し遅らせて模範解答を読み上げ
   if(!iosNoTTS){
     setTimeout(()=>speakText(modelAns), 700);
@@ -1243,6 +1282,7 @@ function showResult(level,userAns,modelAns,comment){
   const v=document.getElementById('res-verdict');
   v.textContent=level==='perfect'?'Excellent!':level==='good'?'Good!':'Keep going!';
   v.className='result-verdict '+(level==='perfect'?'ok':level==='good'?'good':'ng');
+  showFeedback(level);
   document.getElementById('res-your').innerHTML=userAns?makeWordTokens(userAns):'（なし）';
   document.getElementById('speak-your-btn').onclick=()=>{if(recordedAudioUrl){new Audio(recordedAudioUrl).play();}else{speakText(userAns||'');}};
   document.getElementById('speak-model-btn').onclick=()=>speakText(modelAns);
