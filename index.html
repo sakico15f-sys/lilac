@@ -1218,8 +1218,9 @@ function showResult(level,userAns,modelAns,comment){
   // Playback モードに切り替わり、次の問題で recognition が無音しか拾わなくなる。
   // タップ起動の speak-btn は残し、自動再生だけ抑止する。
   const iosNoTTS=/iPhone|iPad|iPod/.test(navigator.userAgent);
-  // iPhoneでは効果音も鳴らさない(再生が次の問題の認識に影響するのを避けるため)
-  if(isCorrect){correctCount++;if(!iosNoTTS)playCorrect(null);}else{if(!iosNoTTS)playWrong(null);}
+  // 効果音はiPhoneでも鳴らす(使い回し方式にしてから、次の問題の認識に影響しないかテスト中)
+  if(isCorrect){correctCount++;playCorrect(null);}else{playWrong(null);}
+  dbg('effect sound played');
   // 非iOSでは少し遅らせて模範解答を読み上げ
   if(!iosNoTTS){
     setTimeout(()=>speakText(modelAns), 700);
