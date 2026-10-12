@@ -184,6 +184,25 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
 /* TOAST */
 .word-toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(24,8,58,.9);color:white;font-size:13px;padding:10px 20px;border-radius:22px;font-family:'Inter','M PLUS 1p',sans-serif;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .22s,transform .22s;z-index:999;max-width:90vw;text-overflow:ellipsis;overflow:hidden}
 .word-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ── IDIOM MODE ── */
+.idiom-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 24px 4px;padding:15px;border-radius:16px;background:var(--card);border:1.5px solid var(--accent2);color:var(--accent2);font-size:15px;font-family:'Inter','M PLUS 1p',sans-serif;font-weight:700;cursor:pointer;width:calc(100% - 48px);letter-spacing:.04em;transition:opacity .15s,transform .1s}
+.idiom-btn:active{opacity:.8;transform:scale(.97)}
+.idiom-btn:disabled{opacity:.6;pointer-events:none}
+.idiom-btn-sub{display:block;text-align:center;font-size:11px;color:var(--muted);margin:0 24px 6px;font-family:'Inter','M PLUS 1p',sans-serif}
+.idiom-card{background:var(--card);border:1.5px solid var(--accent2);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.idiom-card.hidden,.idiom-task.hidden{display:none}
+.idiom-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.idiom-phrase{font-family:'Montserrat','Inter',sans-serif;font-size:21px;font-weight:800;color:var(--accent2);line-height:1.3}
+.idiom-reg{font-size:10px;font-weight:700;color:white;background:linear-gradient(135deg,var(--lavender),var(--accent2));padding:3px 9px;border-radius:20px;white-space:nowrap;font-family:'Inter','M PLUS 1p',sans-serif}
+.idiom-meaning{font-size:15px;font-weight:700;font-family:'Inter','M PLUS 1p',sans-serif}
+.idiom-nuance{font-size:13px;line-height:1.7;color:var(--text);font-family:'Inter','M PLUS 1p',sans-serif}
+.idiom-ex{font-size:13px;line-height:1.6;padding:9px 12px;background:var(--bg2);border-radius:10px;font-family:'Inter','M PLUS 1p',sans-serif}
+.idiom-ex-en{font-style:italic;color:var(--accent)}
+.idiom-ex-jp{font-size:12px;color:var(--muted);margin-top:2px}
+.idiom-actions{display:flex;gap:8px}
+.idiom-mini-btn{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--accent);font-size:12px;font-weight:600;font-family:'Inter','M PLUS 1p',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
+.idiom-mini-btn:active{background:var(--bg2)}
+.idiom-task{font-size:11px;color:var(--muted);letter-spacing:.06em;font-family:'Inter','M PLUS 1p',sans-serif;font-weight:600}
 </style>
 </head>
 <body>
@@ -200,6 +219,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
     <button class="mode-btn" id="btn-random" onclick="setMode('random')">ランダム</button>
   </div>
   <button class="random-btn" onclick="startRandom()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg> ランダム20問で始める</button>
+  <button class="idiom-btn" id="idiom-start-btn" onclick="startIdiom()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="idiom-start-lbl">Idiom 10問で始める</span></button>
+  <div class="idiom-btn-sub">今どきの会話でよく使うidiom・句動詞</div>
   <button class="vocab-home-btn" onclick="showVocabScreen()">
     <div class="vocab-home-btn-left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>単語帳</div>
     <span class="vocab-badge" id="vocab-badge">0</span>
@@ -220,6 +241,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
   <div class="prog-wrap"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
   <div class="quiz-scroll">
     <div class="lesson-tag" id="lesson-tag">CHAPTER 1 · LESSON 1</div>
+    <div class="idiom-card hidden" id="idiom-card">
+      <div class="idiom-head"><div class="idiom-phrase" id="idiom-phrase"></div><span class="idiom-reg" id="idiom-reg"></span></div>
+      <div class="idiom-meaning" id="idiom-meaning"></div>
+      <div class="idiom-nuance" id="idiom-nuance"></div>
+      <div class="idiom-ex"><div class="idiom-ex-en" id="idiom-ex-en"></div><div class="idiom-ex-jp" id="idiom-ex-jp"></div></div>
+      <div class="idiom-actions">
+        <button class="idiom-mini-btn" onclick="speakIdiomExample()"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>例文を聞く</button>
+        <button class="idiom-mini-btn" id="idiom-save-btn" onclick="saveIdiomToVocab()">＋ 単語帳へ</button>
+      </div>
+    </div>
+    <div class="idiom-task hidden" id="idiom-task">↓ この表現を使って英語で言ってみよう</div>
     <div class="jp-card"><div class="jp-text" id="jp-text">私は学生です。</div></div>
   </div>
   <div class="mic-zone">
@@ -893,27 +925,150 @@ function startRandom(){
   beginQuiz('ランダム 20問');
 }
 
-function beginQuiz(title){
+// autoStart=false のときは、マイクボタンを押すまで録音を始めない
+// (Idiomモードは問題の生成を待つ間にタップ操作の扱いが切れるため、iPhoneで確実に動くように1問目だけ手動開始にする)
+function beginQuiz(title,autoStart=true){
   unlockSpeech();
   qIdx=0; correctCount=0;
   show('quiz');
   document.getElementById('quiz-title-lbl').textContent=title;
-  loadQuestion();
+  loadQuestion(autoStart);
 }
 
-function loadQuestion(){
+function loadQuestion(autoStart=true){
   if(qIdx>=queue.length){showComplete();return;}
   qJudged=false; qCorrect=false;
   const q=queue[qIdx];
   document.getElementById('jp-text').textContent=q.jp;
-  document.getElementById('lesson-tag').textContent=`CHAPTER ${q.chapter} · LESSON ${q.lesson} · ${q.title}`;
+  document.getElementById('lesson-tag').textContent=q.kind==='idiom'
+    ?'IDIOM · 今どきの表現'
+    :`CHAPTER ${q.chapter} · LESSON ${q.lesson} · ${q.title}`;
+  renderIdiomCard(q);
   document.getElementById('quiz-prog-lbl').textContent=`${qIdx+1} / ${queue.length}`;
   document.getElementById('prog-fill').style.width=`${(qIdx/queue.length)*100}%`;
   resetMicUI();
   // iOS Safari: TTSとの競合を避けるため、startListening側でAudioSessionを
   // 強制的にRecordモードに戻してから認識を開始する。
-  startListening();
+  if(autoStart) startListening();
 }
+
+// ── IDIOM MODE ──────────────────────────────────────
+const IDIOM_COUNT=10;
+const IDIOM_SEEN_KEY='lilac_idiom_seen';
+function getIdiomSeen(){try{return JSON.parse(localStorage.getItem(IDIOM_SEEN_KEY)||'[]');}catch{return[];}}
+function addIdiomSeen(list){
+  const seen=getIdiomSeen();
+  list.forEach(p=>{const k=p.toLowerCase();if(!seen.includes(k))seen.push(k);});
+  // 直近150件だけ覚えておく(古いものはまた出てもOK)
+  try{localStorage.setItem(IDIOM_SEEN_KEY,JSON.stringify(seen.slice(-150)));}catch{}
+}
+
+async function startIdiom(){
+  // iPhoneの読み上げ準備は、タップ直後(待ち時間の前)にしておく必要がある
+  unlockSpeech();
+  const btn=document.getElementById('idiom-start-btn');
+  const lbl=document.getElementById('idiom-start-lbl');
+  btn.disabled=true; lbl.textContent='問題を作成中…(10秒ほど)';
+  const seen=getIdiomSeen();
+  const prompt=`あなたは英語教師です。2020年代のネイティブの日常会話(友人・家族・職場・SNS・ドラマ)で、今も実際によく使われているidiomや句動詞を${IDIOM_COUNT}個選び、スピーキング練習問題を作ってください。
+
+【選び方】
+・今の会話で普通に使われる表現だけを選ぶ。古い・教科書的で実際はほぼ使わない表現(例: raining cats and dogs のような古風なもの)は避ける
+・idiomと句動詞を混ぜ、カジュアル寄りを中心に、職場で使える表現も2〜3個入れる
+・下品・攻撃的なスラングは入れない
+・次の表現は最近出題済みなので使わない: ${seen.length?seen.join(', '):'(なし)'}
+
+【各問題の作り方】
+・phrase: 表現そのもの(例: call it a day)
+・meaning: 日本語の意味(15字以内)
+・nuance: どんな場面・相手に使うか、ニュアンスの説明(日本語50字以内)
+・register: "カジュアル" / "ふつう" / "ビジネス" のどれか
+・example_en / example_jp: その表現を使った自然な会話例文と和訳(ドラマの1シーンのような短い一言。実在の作品のセリフは使わず、オリジナルで作る)
+・jp: 学習者が英語に訳して話す日本語の文(例文とは別の場面。自然な日本語の話し言葉)
+・en: jpをその表現を使って英訳した模範解答(12語以内、自然な口語)
+
+JSON配列のみで返答: [{"phrase":"","meaning":"","nuance":"","register":"","example_en":"","example_jp":"","jp":"","en":""}]`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:3000,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error?.message||('HTTP '+res.status));
+    const text=data.content?.[0]?.text||'';
+    const s=text.indexOf('['), e=text.lastIndexOf(']');
+    if(s<0||e<s) throw new Error('形式エラー');
+    const items=JSON.parse(text.slice(s,e+1))
+      .filter(it=>it&&it.phrase&&it.jp&&it.en)
+      .slice(0,IDIOM_COUNT);
+    if(!items.length) throw new Error('問題が空でした');
+    addIdiomSeen(items.map(it=>it.phrase));
+    queue=items.map(it=>({
+      kind:'idiom',chapter:0,lesson:0,title:'Idiom',
+      jp:it.jp,en:it.en,phrase:it.phrase,meaning:it.meaning||'',nuance:it.nuance||'',
+      register:it.register||'',exampleEn:it.example_en||'',exampleJp:it.example_jp||''
+    }));
+    beginQuiz('Idiom '+queue.length+'問',false);
+  }catch(err){
+    console.log('idiom error',err);
+    showToast('問題を作れませんでした。通信やAPIキーを確認してください');
+  }
+  btn.disabled=false; lbl.textContent='Idiom 10問で始める';
+}
+
+function renderIdiomCard(q){
+  const card=document.getElementById('idiom-card');
+  const task=document.getElementById('idiom-task');
+  const isIdiom=q&&q.kind==='idiom';
+  card.classList.toggle('hidden',!isIdiom);
+  task.classList.toggle('hidden',!isIdiom);
+  if(!isIdiom)return;
+  document.getElementById('idiom-phrase').textContent=q.phrase;
+  const reg=document.getElementById('idiom-reg');
+  reg.textContent=q.register; reg.style.display=q.register?'':'none';
+  document.getElementById('idiom-meaning').textContent=q.meaning;
+  document.getElementById('idiom-nuance').textContent=q.nuance;
+  document.getElementById('idiom-ex-en').textContent=q.exampleEn;
+  document.getElementById('idiom-ex-jp').textContent=q.exampleJp;
+  const saved=getVocab().some(v=>v.word.toLowerCase()===q.phrase.toLowerCase());
+  const sb=document.getElementById('idiom-save-btn');
+  sb.textContent=saved?'✓ 保存済み':'＋ 単語帳へ'; sb.disabled=saved;
+}
+
+// 例文の読み上げはボタンを押したときだけ(録音中なら止めてから読む)
+function speakIdiomExample(){
+  const q=queue[qIdx]; if(!q||!q.exampleEn)return;
+  if(isListening){stopListening();resetMicUI();currentTranscript='';showTranscript('');}
+  ttsEnabled=true; speakText(q.exampleEn);
+}
+
+function idiomJudgePrompt(q,answer){
+  return `英語スピーキング練習(idiom・句動詞の練習)の採点をしてください。
+練習する表現:${q.phrase}(${q.meaning})
+日本語問題:${q.jp}
+模範解答:${q.en}
+学習者の回答(音声認識の結果):${answer}
+
+【採点ルール】
+・level="perfect":練習する表現(${q.phrase})を正しく使い、日本語問題の意味が自然に伝わっている。語順や主語など、模範解答と多少違っても自然ならperfect
+・短縮形と元の形(I'm と I am など)の違いや、音声認識による句読点・大文字の違いは減点しない
+・level="good":表現は使えているが少し不自然・小さな文法ミスがある、または意味は正しく伝わるが練習する表現を使っていない。表現を使っていない場合はコメントで「${q.phrase}を使ってみましょう」と促す
+・level="wrong":意味が伝わらない、または大きな文法ミスがある
+・コメントは回答に実際に存在する誤りや改善点のみ指摘し、存在しない誤りは指摘しない
+
+JSONのみ返答:{"level":"perfect"/"good"/"wrong","comment":"日本語30字以内"}`;
+}
+
+function saveIdiomToVocab(){
+  const q=queue[qIdx]; if(!q||q.kind!=='idiom')return;
+  const list=getVocab();
+  if(list.some(v=>v.word.toLowerCase()===q.phrase.toLowerCase())){showToast('すでに保存済み: '+q.phrase);return;}
+  list.unshift({word:q.phrase,meaning:q.meaning,addedAt:Date.now()});
+  setVocab(list); updateVocabBadge(); renderIdiomCard(q);
+  showToast('✓  '+q.phrase+'  →  '+q.meaning);
+}
+// ────────────────────────────────────────────────────
 
 function startTimer(){
   timeLeft=MAX_SEC; updateRing(MAX_SEC);
@@ -1156,7 +1311,7 @@ async function askAI(){
 日本語問題: ${askContext.jp}
 模範解答: ${askContext.en}
 学習者の回答: ${askContext.userAns}
-AIの採点コメント: ${askContext.comment}
+AIの採点コメント: ${askContext.comment}${askContext.phrase?`\n練習中のidiom・句動詞: ${askContext.phrase}(${askContext.meaning})`:''}
 
 「なぜ？」「どうして？」などの短い質問は、直前のAIの採点コメントまたはAIの返答に対する質問として解釈してください。
 日本語で答えてください。`;
@@ -1205,7 +1360,7 @@ async function judge(transcript){
       headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',max_tokens:100,
-        messages:[{role:'user',content:`英語スピーキング練習の採点をしてください。\n日本語問題:${q.jp}\n模範解答:${q.en}\n学習者の回答:${answer}\n\n【採点ルール】\n・level="perfect":模範解答と全く同じ意味・表現で完璧\n・短縮形と元の形(I'm と I am、don't と do not、can't と cannot など)は同じ表現として扱い、それだけの違いなら必ずperfectにする\n・level="good":意味は通じるが、より一般的・自然な表現が模範解答にある場合。その場合コメントで「〇〇の方がより自然です」と教える\n・level="wrong":意味が伝わらない、または大きな文法ミスがある\n・コメントは回答に実際に存在する誤りや改善点のみ指摘すること\n・存在しない誤りや、既に正しい部分への指摘は絶対にしない\n\nJSONのみ返答:{"level":"perfect"/"good"/"wrong","comment":"日本語30字以内"}`}]
+        messages:[{role:'user',content:q.kind==='idiom'?idiomJudgePrompt(q,answer):`英語スピーキング練習の採点をしてください。\n日本語問題:${q.jp}\n模範解答:${q.en}\n学習者の回答:${answer}\n\n【採点ルール】\n・level="perfect":模範解答と全く同じ意味・表現で完璧\n・短縮形と元の形(I'm と I am、don't と do not、can't と cannot など)は同じ表現として扱い、それだけの違いなら必ずperfectにする\n・level="good":意味は通じるが、より一般的・自然な表現が模範解答にある場合。その場合コメントで「〇〇の方がより自然です」と教える\n・level="wrong":意味が伝わらない、または大きな文法ミスがある\n・コメントは回答に実際に存在する誤りや改善点のみ指摘すること\n・存在しない誤りや、既に正しい部分への指摘は絶対にしない\n\nJSONのみ返答:{"level":"perfect"/"good"/"wrong","comment":"日本語30字以内"}`}]
       })
     });
     const data=await res.json();
@@ -1297,7 +1452,7 @@ function showResult(level,userAns,modelAns,comment){
   document.getElementById('res-model').innerHTML=makeWordTokens(modelAns);
   document.getElementById('res-comment').innerHTML=makeWordTokens(comment);
   askHistory=[];
-  askContext={jp:queue[qIdx].jp,en:queue[qIdx].en,userAns,comment};
+  askContext={jp:queue[qIdx].jp,en:queue[qIdx].en,userAns,comment,phrase:queue[qIdx].phrase||'',meaning:queue[qIdx].meaning||''};
   document.getElementById('ask-input').value='';
   document.getElementById('ask-response').classList.remove('visible');
   document.getElementById('ask-response').textContent='';
