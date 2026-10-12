@@ -190,7 +190,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
 .idiom-btn:disabled{opacity:.6;pointer-events:none}
 .idiom-btn-sub{display:block;text-align:center;font-size:11px;color:var(--muted);margin:0 24px 6px;font-family:'Inter','M PLUS 1p',sans-serif}
 .idiom-card{background:var(--card);border:1.5px solid var(--accent2);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
-.idiom-card.hidden,.idiom-task.hidden{display:none}
+.idiom-card.hidden,.idiom-task.hidden,.idiom-more.hidden{display:none}
+/* 問題エリアがはみ出したときは、カードを押しつぶさずにスクロールさせる */
+.quiz-scroll>*{flex-shrink:0}
+.idiom-more{display:flex;flex-direction:column;gap:8px}
+/* Idiomモードでは問題文を少し小さくして、長い文でも収まるようにする */
+#quiz.idiom-mode .jp-card{padding:16px 18px}
+#quiz.idiom-mode .jp-text{font-size:19px;line-height:1.5}
+#quiz.idiom-mode .idiom-card{padding:14px 16px;gap:6px}
+/* Idiomモードでは問題文をいちばん上に出す(表現カードはその下) */
+#quiz.idiom-mode .jp-card{order:1}
+#quiz.idiom-mode .idiom-task{order:2}
+#quiz.idiom-mode .idiom-card{order:3}
 .idiom-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .idiom-phrase{font-family:'Montserrat','Inter',sans-serif;font-size:21px;font-weight:800;color:var(--accent2);line-height:1.3}
 .idiom-reg{font-size:10px;font-weight:700;color:white;background:linear-gradient(135deg,var(--lavender),var(--accent2));padding:3px 9px;border-radius:20px;white-space:nowrap;font-family:'Inter','M PLUS 1p',sans-serif}
@@ -244,14 +255,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
     <div class="idiom-card hidden" id="idiom-card">
       <div class="idiom-head"><div class="idiom-phrase" id="idiom-phrase"></div><span class="idiom-reg" id="idiom-reg"></span></div>
       <div class="idiom-meaning" id="idiom-meaning"></div>
-      <div class="idiom-nuance" id="idiom-nuance"></div>
-      <div class="idiom-ex"><div class="idiom-ex-en" id="idiom-ex-en"></div><div class="idiom-ex-jp" id="idiom-ex-jp"></div></div>
-      <div class="idiom-actions">
+      <div class="idiom-more hidden" id="idiom-more">
+        <div class="idiom-nuance" id="idiom-nuance"></div>
+        <div class="idiom-ex"><div class="idiom-ex-en" id="idiom-ex-en"></div><div class="idiom-ex-jp" id="idiom-ex-jp"></div></div>
         <button class="idiom-mini-btn" onclick="speakIdiomExample()"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>例文を聞く</button>
+      </div>
+      <div class="idiom-actions">
+        <button class="idiom-mini-btn" id="idiom-more-btn" onclick="toggleIdiomMore()">ニュアンス・例文 ▼</button>
         <button class="idiom-mini-btn" id="idiom-save-btn" onclick="saveIdiomToVocab()">＋ 単語帳へ</button>
       </div>
     </div>
-    <div class="idiom-task hidden" id="idiom-task">↓ この表現を使って英語で言ってみよう</div>
+    <div class="idiom-task hidden" id="idiom-task">↑ この文を、下の表現を使って英語で言ってみよう</div>
     <div class="jp-card"><div class="jp-text" id="jp-text">私は学生です。</div></div>
   </div>
   <div class="mic-zone">
@@ -1023,6 +1037,11 @@ function renderIdiomCard(q){
   const isIdiom=q&&q.kind==='idiom';
   card.classList.toggle('hidden',!isIdiom);
   task.classList.toggle('hidden',!isIdiom);
+  document.getElementById('quiz').classList.toggle('idiom-mode',!!isIdiom);
+  // 新しい問題では詳細をたたみ、いちばん上から表示する
+  document.getElementById('idiom-more').classList.add('hidden');
+  document.getElementById('idiom-more-btn').textContent='ニュアンス・例文 ▼';
+  const sc=document.querySelector('.quiz-scroll'); if(sc) sc.scrollTop=0;
   if(!isIdiom)return;
   document.getElementById('idiom-phrase').textContent=q.phrase;
   const reg=document.getElementById('idiom-reg');
@@ -1034,6 +1053,12 @@ function renderIdiomCard(q){
   const saved=getVocab().some(v=>v.word.toLowerCase()===q.phrase.toLowerCase());
   const sb=document.getElementById('idiom-save-btn');
   sb.textContent=saved?'✓ 保存済み':'＋ 単語帳へ'; sb.disabled=saved;
+}
+
+function toggleIdiomMore(){
+  const more=document.getElementById('idiom-more');
+  const open=more.classList.toggle('hidden')===false;
+  document.getElementById('idiom-more-btn').textContent=open?'ニュアンス・例文 ▲':'ニュアンス・例文 ▼';
 }
 
 // 例文の読み上げはボタンを押したときだけ(録音中なら止めてから読む)
