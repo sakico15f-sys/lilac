@@ -366,6 +366,9 @@ if (!API_KEY) {
   if (API_KEY) localStorage.setItem('lilac_api_key', API_KEY);
 }
 const MAX_SEC = 12, CIRC = 295.3;
+// 制限時間は模範解答の長さに合わせて延ばす(短い文は12秒のまま、長い文は最大25秒)
+let curMaxSec = MAX_SEC;
+function calcMaxSec(en){const w=(en||'').trim().split(/\s+/).filter(Boolean).length;return Math.min(25,Math.max(MAX_SEC,w+6));}
 
 const CSV_DATA = [
 ["1","1","be動詞","私は学生です。","I am a student."],
@@ -958,6 +961,7 @@ function loadQuestion(autoStart=true){
     ?'IDIOM · 今どきの表現'
     :`CHAPTER ${q.chapter} · LESSON ${q.lesson} · ${q.title}`;
   renderIdiomCard(q);
+  curMaxSec=calcMaxSec(q.en);
   document.getElementById('quiz-prog-lbl').textContent=`${qIdx+1} / ${queue.length}`;
   document.getElementById('prog-fill').style.width=`${(qIdx/queue.length)*100}%`;
   resetMicUI();
@@ -1096,7 +1100,7 @@ function saveIdiomToVocab(){
 // ────────────────────────────────────────────────────
 
 function startTimer(){
-  timeLeft=MAX_SEC; updateRing(MAX_SEC);
+  timeLeft=curMaxSec; updateRing(curMaxSec);
   clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
     timeLeft--; updateRing(timeLeft);
@@ -1106,10 +1110,10 @@ function startTimer(){
 
 function updateRing(sec){
   document.getElementById('timer-sec').textContent=sec;
-  const offset=CIRC*(1-sec/MAX_SEC);
+  const offset=CIRC*(1-sec/curMaxSec);
   const fg=document.getElementById('ring-fg');
   fg.style.strokeDashoffset=offset;
-  const p=sec/MAX_SEC;
+  const p=sec/curMaxSec;
   fg.style.stroke=p>0.5?'var(--accent)':p>0.25?'#e8c060':'var(--ng)';
 }
 
@@ -1154,7 +1158,18 @@ function handleResult(e){
     const t=e.results[i][0].transcript;
     if(e.results[i].isFinal) final+=t; else interim+=t;
   }
-  if(final) currentTranscript=(currentTranscript+' '+final).replace(/\s+/g,' ').trim();
+  if(final){
+    // iPhoneでは、確定した文字が直前の仮の文字より短く(後半が欠けて)届くことがある。
+    // 確定文が仮の文字の前半と同じで短いだけなら、長いほう(仮の文字)を採用する
+    let f=final.trim();
+    const w=s=>s.toLowerCase().replace(/[^a-z0-9'\s]/g,'').split(/\s+/).filter(Boolean);
+    const fw=w(f), iw=w(lastInterim);
+    if(lastInterim&&iw.length>fw.length&&fw.every((x,i)=>x===iw[i])){
+      dbg(`final shorter than interim → keep "${lastInterim}"`);
+      f=lastInterim;
+    }
+    currentTranscript=(currentTranscript+' '+f).replace(/\s+/g,' ').trim();
+  }
   lastInterim=interim.trim();
   showTranscript((currentTranscript+(interim?' '+interim:'')).trim());
   dbg(`result final="${final}" interim="${interim}"`);
@@ -1179,6 +1194,12 @@ function getIOSRecognition(){
   };
   r.onend=()=>{
     srActive=false;dbg('end');
+    // 文と文の間で区切れたとき、確定されなかった仮の文字が次の認識で上書きされて消えないよう、ここで保存する
+    if(lastInterim){
+      dbg(`commit interim "${lastInterim}"`);
+      currentTranscript=(currentTranscript+' '+lastInterim).replace(/\s+/g,' ').trim();
+      lastInterim='';
+    }
     if(srPendingStart){srPendingStart=false;iosStart();return;}
     // 話している途中で区切れたら、少し待って同じインスタンスで再開
     if(isListening&&!isJudging){
@@ -1520,7 +1541,7 @@ function resetMicUI(){
   isJudging=false; isListening=false;
   setMicState('idle');
   document.getElementById('retry-btn').disabled=true;
-  updateRing(MAX_SEC);
+  updateRing(curMaxSec);
 }
 
 function showTranscript(text){
