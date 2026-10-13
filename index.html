@@ -108,7 +108,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
 .result-lbl{font-size:10px;color:var(--muted);letter-spacing:.16em;font-family:'Inter',sans-serif;font-weight:700}
 .result-box{font-size:16px;line-height:1.6;padding:11px 13px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);font-family:'Inter','M PLUS 1p',sans-serif}
 .result-box.model{color:var(--accent);font-style:italic}
-.result-comment{font-size:13px;line-height:1.75;padding:10px 13px;background:rgba(112,64,208,.07);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;font-family:'Inter','M PLUS 1p',sans-serif}
+.result-comment{white-space:pre-wrap;font-size:13px;line-height:1.75;padding:10px 13px;background:rgba(112,64,208,.07);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;font-family:'Inter','M PLUS 1p',sans-serif}
 
 .ask-section{display:flex;flex-direction:column;gap:8px}
 .ask-row{display:flex;gap:8px;align-items:center}
@@ -1120,13 +1120,15 @@ function idiomJudgePrompt(q,answer){
 
 【採点ルール】
 ・level="perfect":練習する表現(${q.phrase})を正しく使い、日本語問題の意味が自然に伝わっている。語順や主語など、模範解答と多少違っても自然ならperfect
+・この学習者は日常会話(友人・家族・SNS)で自然に話せることを目指している。採点の基準は「ネイティブが日常会話でふつうに言うか」であり、フォーマルさではない。gonna/wanna/kinda、主語の省略(Sounds good. / Got it.)、Yeah、口語的な語順や言い回しなど、カジュアルでも自然な英語なら減点せずperfectにする
+・回答がカジュアルな表現でperfectにした場合は、formalに同じ内容のフォーマル(目上・仕事向け)な英文を入れる。回答がすでにフォーマル寄りなら、formalは空文字にする
 ・短縮形と元の形(I'm と I am など)の違いや、音声認識による句読点・大文字の違いは減点しない
 ・回答はiPhoneの音声認識の結果。句読点が入らないため、2文以上を話すと認識側が1文につなげようとして、2文目の単語を発音の近い別の語に置き換えることがある。文の区切りの欠落や、発音が近い語への置き換えなど、音声認識の誤変換と考えられる違いは減点しない
-・level="good":表現は使えているが少し不自然・小さな文法ミスがある、または意味は正しく伝わるが練習する表現を使っていない。表現を使っていない場合はコメントで「${q.phrase}を使ってみましょう」と促す
+・level="good":表現は使えているが少し不自然・小さな文法ミスがある(カジュアルなだけならgoodにしない)、または意味は正しく伝わるが練習する表現を使っていない。表現を使っていない場合はコメントで「${q.phrase}を使ってみましょう」と促す
 ・level="wrong":意味が伝わらない、または大きな文法ミスがある
 ・コメントは回答に実際に存在する誤りや改善点のみ指摘し、存在しない誤りは指摘しない
 
-JSONのみ返答:{"level":"perfect"/"good"/"wrong","comment":"日本語30字以内"}`;
+JSONのみ返答:{"level":"perfect"/"good"/"wrong","comment":"日本語40字以内","formal":"フォーマルな英文または空文字"}`;
 }
 
 function saveIdiomToVocab(){
@@ -1459,15 +1461,18 @@ async function judge(transcript){
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
-        model:'claude-haiku-4-5-20251001',max_tokens:100,
-        messages:[{role:'user',content:q.kind==='idiom'?idiomJudgePrompt(q,answer):`英語スピーキング練習の採点をしてください。\n日本語問題:${q.jp}\n模範解答:${q.en}\n学習者の回答:${answer}\n\n【採点ルール】\n・level="perfect":模範解答と全く同じ意味・表現で完璧\n・短縮形と元の形(I'm と I am、don't と do not、can't と cannot など)は同じ表現として扱い、それだけの違いなら必ずperfectにする\n・回答はiPhoneの音声認識の結果。句読点が入らないため、2文以上を話すと認識側が1文につなげようとして、2文目の単語を発音の近い別の語に置き換えることがある。文の区切りの欠落や、発音が近い語への置き換えなど、音声認識の誤変換と考えられる違いは減点しない\n・level="good":意味は通じるが、より一般的・自然な表現が模範解答にある場合。その場合コメントで「〇〇の方がより自然です」と教える\n・level="wrong":意味が伝わらない、または大きな文法ミスがある\n・コメントは回答に実際に存在する誤りや改善点のみ指摘すること\n・存在しない誤りや、既に正しい部分への指摘は絶対にしない\n\nJSONのみ返答:{"level":"perfect"/"good"/"wrong","comment":"日本語30字以内"}`}]
+        model:'claude-haiku-4-5-20251001',max_tokens:250,
+        messages:[{role:'user',content:q.kind==='idiom'?idiomJudgePrompt(q,answer):`英語スピーキング練習の採点をしてください。\n日本語問題:${q.jp}\n模範解答:${q.en}\n学習者の回答:${answer}\n\n【採点ルール】\n・level="perfect":模範解答と同じ意味が、自然な英語で言えている。模範解答と表現が違っても、自然ならperfect\n・この学習者は日常会話(友人・家族・SNS)で自然に話せることを目指している。採点の基準は「ネイティブが日常会話でふつうに言うか」であり、フォーマルさではない。gonna/wanna/kinda、主語の省略(Sounds good. / Got it.)、Yeah、口語的な語順や言い回しなど、カジュアルでも自然な英語なら減点せずperfectにする\n・回答がカジュアルな表現でperfectにした場合は、formalに同じ内容のフォーマル(目上・仕事向け)な英文を入れる。回答がすでにフォーマル寄りなら、formalは空文字にする\n・短縮形と元の形(I'm と I am、don't と do not、can't と cannot など)は同じ表現として扱い、それだけの違いなら必ずperfectにする\n・回答はiPhoneの音声認識の結果。句読点が入らないため、2文以上を話すと認識側が1文につなげようとして、2文目の単語を発音の近い別の語に置き換えることがある。文の区切りの欠落や、発音が近い語への置き換えなど、音声認識の誤変換と考えられる違いは減点しない\n・level="good":意味は通じるが、不自然な言い回しや小さな文法ミスがある場合。その場合コメントで「〇〇の方が自然です」と教える。カジュアルなだけの表現はgoodにしない\n・level="wrong":意味が伝わらない、または大きな文法ミスがある\n・コメントは回答に実際に存在する誤りや改善点のみ指摘すること\n・存在しない誤りや、既に正しい部分への指摘は絶対にしない\n\nJSONのみ返答:{"level":"perfect"/"good"/"wrong","comment":"日本語40字以内","formal":"フォーマルな英文または空文字"}`}]
       })
     });
     const data=await res.json();
     const text=data.content?.[0]?.text||'{}';
     const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
     const lv=parsed.level||'wrong';
-    showResult(lv,answer,q.en,parsed.comment||(lv==='wrong'?'もう少し練習しましょう。':'よくできました！'));
+    let cm=parsed.comment||(lv==='wrong'?'もう少し練習しましょう。':'よくできました！');
+    // カジュアルな答えには、フォーマルな言い方を補足で添える
+    if(lv==='perfect'&&parsed.formal&&String(parsed.formal).trim()) cm+='\n\nフォーマルなときは: '+String(parsed.formal).trim();
+    showResult(lv,answer,q.en,cm);
   }catch(e){
     showResult('wrong',answer,q.en,'APIエラー。APIキーを確認してください。');
   }
