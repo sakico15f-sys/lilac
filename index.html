@@ -1121,6 +1121,7 @@ function idiomJudgePrompt(q,answer){
 【採点ルール】
 ・level="perfect":練習する表現(${q.phrase})を正しく使い、日本語問題の意味が自然に伝わっている。語順や主語など、模範解答と多少違っても自然ならperfect
 ・短縮形と元の形(I'm と I am など)の違いや、音声認識による句読点・大文字の違いは減点しない
+・回答はiPhoneの音声認識の結果。句読点が入らないため、2文以上を話すと認識側が1文につなげようとして、2文目の単語を発音の近い別の語に置き換えることがある。文の区切りの欠落や、発音が近い語への置き換えなど、音声認識の誤変換と考えられる違いは減点しない
 ・level="good":表現は使えているが少し不自然・小さな文法ミスがある、または意味は正しく伝わるが練習する表現を使っていない。表現を使っていない場合はコメントで「${q.phrase}を使ってみましょう」と促す
 ・level="wrong":意味が伝わらない、または大きな文法ミスがある
 ・コメントは回答に実際に存在する誤りや改善点のみ指摘し、存在しない誤りは指摘しない
@@ -1168,6 +1169,17 @@ function stopTimer(){clearInterval(timerInterval);timerInterval=null;}
 const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 let srActive=false, srPendingStart=false;
 let lastInterim='';  // 確定前の仮の文字(判定ボタンを押したときの保険)
+// 一呼吸おいて認識が区切れたら、そこを文の切れ目(ピリオド)として扱う。
+// iPhoneの認識は句読点をつけないので、2文がつながって1文に見えてしまうのを防ぐ
+let segBreak=false;
+function joinSeg(base,add){
+  add=(add||'').trim(); if(!add) return base;
+  if(!base) return add;
+  if(segBreak&&!/[.!?,]$/.test(base)){
+    base+='.'; add=add.replace(/^[a-z]/,c=>c.toUpperCase());
+  }
+  return (base+' '+add).replace(/\s+/g,' ').trim();
+}
 
 // 診断ログ: URLの末尾に #debug を付けて開くと画面に表示される
 const HASH=location.hash.toLowerCase();
@@ -1207,10 +1219,11 @@ function handleResult(e){
       dbg(`final shorter than interim → keep "${lastInterim}"`);
       f=lastInterim;
     }
-    currentTranscript=(currentTranscript+' '+f).replace(/\s+/g,' ').trim();
+    currentTranscript=joinSeg(currentTranscript,f);
+    segBreak=false;
   }
   lastInterim=interim.trim();
-  showTranscript((currentTranscript+(interim?' '+interim:'')).trim());
+  showTranscript(interim?joinSeg(currentTranscript,interim):currentTranscript);
   dbg(`result final="${final}" interim="${interim}"`);
 }
 
@@ -1236,9 +1249,11 @@ function getIOSRecognition(){
     // 文と文の間で区切れたとき、確定されなかった仮の文字が次の認識で上書きされて消えないよう、ここで保存する
     if(lastInterim){
       dbg(`commit interim "${lastInterim}"`);
-      currentTranscript=(currentTranscript+' '+lastInterim).replace(/\s+/g,' ').trim();
+      currentTranscript=joinSeg(currentTranscript,lastInterim);
       lastInterim='';
     }
+    // ここで区切れた＝次に話す部分は新しい文
+    if(currentTranscript) segBreak=true;
     if(srPendingStart){srPendingStart=false;iosStart();return;}
     // 話している途中で区切れたら、少し待って同じインスタンスで再開
     if(isListening&&!isJudging){
@@ -1289,7 +1304,7 @@ function startListening(){
     window.speechSynthesis.cancel();
   }
   ttsGen++;
-  currentTranscript=''; lastInterim=''; showTranscript('');
+  currentTranscript=''; lastInterim=''; segBreak=false; showTranscript('');
   isListening=true; isJudging=false;
   if(recordedAudioUrl){URL.revokeObjectURL(recordedAudioUrl);recordedAudioUrl=null;}
   const session=++recordingSession;
@@ -1352,7 +1367,7 @@ function stopAndJudge(){
   const t0=Date.now();
   const finish=()=>{
     judgePending=false;
-    const text=(currentTranscript+' '+lastInterim).replace(/\s+/g,' ').trim();
+    const text=joinSeg(currentTranscript,lastInterim);
     dbg(`judge "${text}" (final="${currentTranscript}" interim="${lastInterim}")`);
     lastInterim='';
     judge(text);
@@ -1375,7 +1390,7 @@ function autoJudge(){stopAndJudge();}
 
 function retryQ(){
   stopListening();
-  currentTranscript=''; showTranscript('');
+  currentTranscript=''; segBreak=false; showTranscript('');
   resetMicUI(); startListening();
 }
 
@@ -1445,7 +1460,7 @@ async function judge(transcript){
       headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
         model:'claude-haiku-4-5-20251001',max_tokens:100,
-        messages:[{role:'user',content:q.kind==='idiom'?idiomJudgePrompt(q,answer):`英語スピーキング練習の採点をしてください。\n日本語問題:${q.jp}\n模範解答:${q.en}\n学習者の回答:${answer}\n\n【採点ルール】\n・level="perfect":模範解答と全く同じ意味・表現で完璧\n・短縮形と元の形(I'm と I am、don't と do not、can't と cannot など)は同じ表現として扱い、それだけの違いなら必ずperfectにする\n・level="good":意味は通じるが、より一般的・自然な表現が模範解答にある場合。その場合コメントで「〇〇の方がより自然です」と教える\n・level="wrong":意味が伝わらない、または大きな文法ミスがある\n・コメントは回答に実際に存在する誤りや改善点のみ指摘すること\n・存在しない誤りや、既に正しい部分への指摘は絶対にしない\n\nJSONのみ返答:{"level":"perfect"/"good"/"wrong","comment":"日本語30字以内"}`}]
+        messages:[{role:'user',content:q.kind==='idiom'?idiomJudgePrompt(q,answer):`英語スピーキング練習の採点をしてください。\n日本語問題:${q.jp}\n模範解答:${q.en}\n学習者の回答:${answer}\n\n【採点ルール】\n・level="perfect":模範解答と全く同じ意味・表現で完璧\n・短縮形と元の形(I'm と I am、don't と do not、can't と cannot など)は同じ表現として扱い、それだけの違いなら必ずperfectにする\n・回答はiPhoneの音声認識の結果。句読点が入らないため、2文以上を話すと認識側が1文につなげようとして、2文目の単語を発音の近い別の語に置き換えることがある。文の区切りの欠落や、発音が近い語への置き換えなど、音声認識の誤変換と考えられる違いは減点しない\n・level="good":意味は通じるが、より一般的・自然な表現が模範解答にある場合。その場合コメントで「〇〇の方がより自然です」と教える\n・level="wrong":意味が伝わらない、または大きな文法ミスがある\n・コメントは回答に実際に存在する誤りや改善点のみ指摘すること\n・存在しない誤りや、既に正しい部分への指摘は絶対にしない\n\nJSONのみ返答:{"level":"perfect"/"good"/"wrong","comment":"日本語30字以内"}`}]
       })
     });
     const data=await res.json();
