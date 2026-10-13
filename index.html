@@ -184,11 +184,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
 /* TOAST */
 .word-toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(24,8,58,.9);color:white;font-size:13px;padding:10px 20px;border-radius:22px;font-family:'Inter','M PLUS 1p',sans-serif;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .22s,transform .22s;z-index:999;max-width:90vw;text-overflow:ellipsis;overflow:hidden}
 .word-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-/* ── IDIOM MODE ── */
-.idiom-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 24px 4px;padding:15px;border-radius:16px;background:var(--card);border:1.5px solid var(--accent2);color:var(--accent2);font-size:15px;font-family:'Inter','M PLUS 1p',sans-serif;font-weight:700;cursor:pointer;width:calc(100% - 48px);letter-spacing:.04em;transition:opacity .15s,transform .1s}
-.idiom-btn:active{opacity:.8;transform:scale(.97)}
-.idiom-btn:disabled{opacity:.6;pointer-events:none}
-.idiom-btn-sub{display:block;text-align:center;font-size:11px;color:var(--muted);margin:0 24px 6px;font-family:'Inter','M PLUS 1p',sans-serif}
+/* ── TODAY'S IDIOM ── */
+.today-idiom{display:block;margin:0 24px 4px;width:calc(100% - 48px);text-align:left;padding:16px 18px;border-radius:16px;background:var(--card);border:1.5px solid var(--accent2);cursor:pointer;font-family:'Inter','M PLUS 1p',sans-serif;color:var(--text);transition:transform .1s}
+.today-idiom:active{transform:scale(.98)}
+.ti-top{display:flex;justify-content:space-between;align-items:center}
+.ti-date{font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--accent2)}
+.ti-done{font-size:10px;font-weight:700;color:var(--ok)}
+.ti-done.hidden{display:none}
+.ti-phrase{font-family:'Montserrat','Inter',sans-serif;font-size:22px;font-weight:800;color:var(--accent2);margin-top:6px;line-height:1.3}
+.ti-meaning{font-size:14px;font-weight:700;margin-top:2px}
+.ti-go{font-size:12px;color:var(--accent);font-weight:600;margin-top:10px}
+.idiom-hook{font-size:13px;line-height:1.75;font-family:'Inter','M PLUS 1p',sans-serif;padding:9px 12px;background:var(--bg2);border-radius:10px}
+.idiom-tip{font-size:12px;line-height:1.6;color:var(--muted);font-family:'Inter','M PLUS 1p',sans-serif}
 .idiom-card{background:var(--card);border:1.5px solid var(--accent2);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
 .idiom-card.hidden,.idiom-task.hidden,.idiom-more.hidden{display:none}
 /* 問題エリアがはみ出したときは、カードを押しつぶさずにスクロールさせる */
@@ -206,10 +213,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
 .idiom-phrase{font-family:'Montserrat','Inter',sans-serif;font-size:21px;font-weight:800;color:var(--accent2);line-height:1.3}
 .idiom-reg{font-size:10px;font-weight:700;color:white;background:linear-gradient(135deg,var(--lavender),var(--accent2));padding:3px 9px;border-radius:20px;white-space:nowrap;font-family:'Inter','M PLUS 1p',sans-serif}
 .idiom-meaning{font-size:15px;font-weight:700;font-family:'Inter','M PLUS 1p',sans-serif}
-.idiom-nuance{font-size:13px;line-height:1.7;color:var(--text);font-family:'Inter','M PLUS 1p',sans-serif}
-.idiom-ex{font-size:13px;line-height:1.6;padding:9px 12px;background:var(--bg2);border-radius:10px;font-family:'Inter','M PLUS 1p',sans-serif}
-.idiom-ex-en{font-style:italic;color:var(--accent)}
-.idiom-ex-jp{font-size:12px;color:var(--muted);margin-top:2px}
 .idiom-actions{display:flex;gap:8px}
 .idiom-mini-btn{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--accent);font-size:12px;font-weight:600;font-family:'Inter','M PLUS 1p',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px}
 .idiom-mini-btn:active{background:var(--bg2)}
@@ -230,8 +233,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
     <button class="mode-btn" id="btn-random" onclick="setMode('random')">ランダム</button>
   </div>
   <button class="random-btn" onclick="startRandom()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg> ランダム20問で始める</button>
-  <button class="idiom-btn" id="idiom-start-btn" onclick="startIdiom()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span id="idiom-start-lbl">Idiom 10問で始める</span></button>
-  <div class="idiom-btn-sub">今どきの会話でよく使うidiom・句動詞</div>
+  <button class="today-idiom" onclick="startIdiom()">
+    <div class="ti-top"><span class="ti-date" id="ti-date">TODAY'S IDIOM</span><span class="ti-done hidden" id="ti-done">✓ 練習済み</span></div>
+    <div class="ti-phrase" id="ti-phrase"></div>
+    <div class="ti-meaning" id="ti-meaning"></div>
+    <div class="ti-go" id="ti-go">解説を読んで話す →</div>
+  </button>
   <button class="vocab-home-btn" onclick="showVocabScreen()">
     <div class="vocab-home-btn-left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>単語帳</div>
     <span class="vocab-badge" id="vocab-badge">0</span>
@@ -255,17 +262,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter'
     <div class="idiom-card hidden" id="idiom-card">
       <div class="idiom-head"><div class="idiom-phrase" id="idiom-phrase"></div><span class="idiom-reg" id="idiom-reg"></span></div>
       <div class="idiom-meaning" id="idiom-meaning"></div>
-      <div class="idiom-more hidden" id="idiom-more">
-        <div class="idiom-nuance" id="idiom-nuance"></div>
-        <div class="idiom-ex"><div class="idiom-ex-en" id="idiom-ex-en"></div><div class="idiom-ex-jp" id="idiom-ex-jp"></div></div>
-        <button class="idiom-mini-btn" onclick="speakIdiomExample()"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>例文を聞く</button>
+      <div class="idiom-more" id="idiom-more">
+        <div class="idiom-hook" id="idiom-hook"></div>
+        <div class="idiom-tip" id="idiom-tip"></div>
       </div>
       <div class="idiom-actions">
-        <button class="idiom-mini-btn" id="idiom-more-btn" onclick="toggleIdiomMore()">ニュアンス・例文 ▼</button>
+        <button class="idiom-mini-btn" id="idiom-more-btn" onclick="toggleIdiomMore()">解説をとじる ▲</button>
         <button class="idiom-mini-btn" id="idiom-save-btn" onclick="saveIdiomToVocab()">＋ 単語帳へ</button>
       </div>
     </div>
-    <div class="idiom-task hidden" id="idiom-task">↑ この文を、下の表現を使って英語で言ってみよう</div>
+    <div class="idiom-task hidden" id="idiom-task">↑ この文を、今日のidiomを使って英語で言ってみよう</div>
     <div class="jp-card"><div class="jp-text" id="jp-text">私は学生です。</div></div>
   </div>
   <div class="mic-zone">
@@ -958,7 +964,7 @@ function loadQuestion(autoStart=true){
   const q=queue[qIdx];
   document.getElementById('jp-text').textContent=q.jp;
   document.getElementById('lesson-tag').textContent=q.kind==='idiom'
-    ?'IDIOM · 今どきの表現'
+    ?`TODAY'S IDIOM · 例文 ${qIdx+1}`
     :`CHAPTER ${q.chapter} · LESSON ${q.lesson} · ${q.title}`;
   renderIdiomCard(q);
   curMaxSec=calcMaxSec(q.en);
@@ -970,71 +976,112 @@ function loadQuestion(autoStart=true){
   if(autoStart) startListening();
 }
 
-// ── IDIOM MODE ──────────────────────────────────────
-const IDIOM_COUNT=10;
-const IDIOM_SEEN_KEY='lilac_idiom_seen';
-function getIdiomSeen(){try{return JSON.parse(localStorage.getItem(IDIOM_SEEN_KEY)||'[]');}catch{return[];}}
-function addIdiomSeen(list){
-  const seen=getIdiomSeen();
-  list.forEach(p=>{const k=p.toLowerCase();if(!seen.includes(k))seen.push(k);});
-  // 直近150件だけ覚えておく(古いものはまた出てもOK)
-  try{localStorage.setItem(IDIOM_SEEN_KEY,JSON.stringify(seen.slice(-150)));}catch{}
+// ── 今日のidiom(作り置き) ──────────────────────────
+// p:表現 m:意味 r:カジュアル度 h:覚え方・イメージ t:使い方のコツ ex:[英語例文, 和訳](スピーキング問題になる)
+const IDIOMS=[
+{p:"call it a day",m:"今日はここまでにする",r:"ふつう",h:"直訳は「それを1日と呼ぶ」。まだ全部終わってなくても「今日の分はこれで1日ってことにしよう！」と宣言するイメージです。",t:"夜なら call it a night も使えます。",ex:[["I'm exhausted. Let's call it a day.","もうクタクタ。今日はここまでにしよう。"],["We did enough work, so let's call it a day.","十分やったし、今日はここまでにしよう。"]]},
+{p:"hang in there",m:"踏ん張って・がんばって",r:"カジュアル",h:"ロープにぶら下がっている人に「手を離さないで！」と声をかける絵を思い浮かべてください。ただの「頑張れ」より、「つらいのは分かってるよ」という寄り添いが入ります。",t:"相手がしんどい時期にいるときの定番。",ex:[["Hang in there. It's almost Friday.","がんばって。もうすぐ金曜だよ。"],["I know it's tough, but hang in there.","大変なのは分かるけど、踏ん張って。"]]},
+{p:"figure out",m:"(考えて)わかる・解決する",r:"ふつう",h:"figure は「数字・計算する」。頭の中で式を組み立てて、「あ、そういうことか」と答えにたどり着く感じです。",t:"figure it out(なんとかする)の形で超よく使います。",ex:[["I can't figure out this app.","このアプリの使い方がわからない。"],["Don't worry. We'll figure it out.","心配しないで。なんとかなるよ。"]]},
+{p:"touch base",m:"軽く連絡を取り合う",r:"ビジネス",h:"野球でランナーが塁(base)にタッチして、また走り出す動き。ちょっと触れて状況確認、すぐ自分の作業に戻る、という軽さです。",t:"「ちょっと確認させて」くらいの温度感のメールでよく見ます。",ex:[["Let's touch base next week.","来週また連絡を取り合いましょう。"],["I just wanted to touch base about the project.","プロジェクトの件で少し確認したくて。"]]},
+{p:"on the same page",m:"認識がそろっている",r:"ビジネス",h:"みんなで同じ本の同じページを開いている状態。一人だけ別のページを読んでいたら、話がかみ合いませんよね。",t:"打ち合わせの最後の確認に便利。",ex:[["Let's make sure we're on the same page.","認識がそろっているか確認しましょう。"],["Great, we're on the same page.","よかった、同じ認識ですね。"]]},
+{p:"a piece of cake",m:"楽勝・朝飯前",r:"カジュアル",h:"ケーキ一切れなら、ペロッと食べられる。日本語の「朝飯前」と同じく、食べ物で簡単さを表しているのが面白いところです。",t:"自分の苦労を軽く見せるときにも。",ex:[["The test was a piece of cake.","テストは楽勝だった。"],["Don't worry. It's a piece of cake.","心配しないで。簡単だよ。"]]},
+{p:"break the ice",m:"場をなごませる",r:"ふつう",h:"凍った海で、砕氷船が氷を割って道を作るイメージ。最初のひと言で、カチコチの空気に通り道を作ります。",t:"初対面の雑談や自己紹介ゲームは icebreaker と言います。",ex:[["He told a joke to break the ice.","彼は場をなごませるために冗談を言った。"],["Let's play a game to break the ice.","打ち解けるためにゲームをしよう。"]]},
+{p:"under the weather",m:"なんとなく体調がすぐれない",r:"ふつう",h:"どんより曇った空の「下」にいる感じ。熱で寝込むほどじゃないけど、なんだか調子が出ない日にぴったりです。",t:"本格的な病気より、軽い不調に使います。",ex:[["I'm feeling a bit under the weather.","ちょっと体調がよくないんだ。"],["She's under the weather, so she's resting today.","彼女は体調がすぐれないので、今日は休んでいるよ。"]]},
+{p:"get the hang of",m:"コツをつかむ",r:"カジュアル",h:"道具がだんだん手になじんでくる感覚。最初はぎこちなかったのに、ある日ふっと「わかった」となる瞬間です。",t:"get the hang of it で「慣れる」。励ましにもよく使います。",ex:[["You'll get the hang of it soon.","すぐにコツをつかめるよ。"],["I'm finally getting the hang of this app.","やっとこのアプリに慣れてきた。"]]},
+{p:"my bad",m:"ごめん、私のミス",r:"カジュアル",h:"直訳は「私の悪い」…そのまんま！ 軽いミスをサッと認めて、さらっと流す一言です。",t:"深刻な場面だと軽すぎるので、友達同士の小さなミス向け。",ex:[["Oops, my bad. I sent the wrong file.","あ、ごめん。違うファイル送っちゃった。"],["My bad. I forgot to call you back.","ごめん、折り返すの忘れてた。"]]},
+{p:"I'm down",m:"乗った！やろう",r:"カジュアル",h:"誘われて「いいね、腰を下ろして参加するよ」くらいの気軽さで覚えると楽です。若い人の会話で本当によく聞きます。",t:"I'm down for 〜 / I'm down to 〜 の形でも。",ex:[["Pizza tonight? I'm down.","今夜ピザ？乗った。"],["I'm down for a movie this weekend.","今週末の映画、行く行く。"]]},
+{p:"bite off more than you can chew",m:"手に負えないほど引き受ける",r:"ふつう",h:"口いっぱいにほおばって、噛めなくなっている自分を想像してください。仕事の抱えすぎにぴったりの絵です。",t:"自分への反省にも、人への忠告にも。",ex:[["I think I bit off more than I can chew.","ちょっと引き受けすぎたかも。"],["Don't bite off more than you can chew.","無理して抱え込みすぎないでね。"]]},
+{p:"cut corners",m:"手を抜く",r:"ふつう",h:"角を斜めにショートカットして近道する。ルートは短くなるけど、本来通るべき部分を飛ばしている、というイメージです。",t:"品質・安全の話でよく出てきます。",ex:[["We can't cut corners on safety.","安全面で手を抜くわけにはいかない。"],["He cut corners, and the work was sloppy.","彼が手を抜いたので、仕事が雑だった。"]]},
+{p:"the ball is in your court",m:"次はあなた次第",r:"ふつう",h:"テニスで、ボールが相手のコートへ。こっちはもう打ったから、次に動くのはあなたの番です。",t:"交渉や返事待ちの場面で使います。",ex:[["I made my offer. The ball is in your court.","提案はしたよ。あとはあなた次第。"],["The ball is in your court now.","今度はそっちが決める番だよ。"]]},
+{p:"get on someone's nerves",m:"イライラさせる",r:"ふつう",h:"神経の上に乗っかってくる＝「神経を逆なでする」。日本語とほぼ同じ発想なので覚えやすいはず。",t:"人にも音や癖にも使えます。",ex:[["That noise is getting on my nerves.","あの音、イライラする。"],["He really gets on my nerves sometimes.","彼にはときどき本当にイライラする。"]]},
+{p:"sleep on it",m:"一晩じっくり考える",r:"ふつう",h:"悩みごとを枕の下に入れて寝るイメージ。答えを急がず、明日の自分に任せます。",t:"即答を避けたいときの、角が立たない言い方。",ex:[["Let me sleep on it.","一晩考えさせて。"],["You don't have to decide now. Sleep on it.","今決めなくていいよ。一晩考えてみて。"]]},
+{p:"keep me posted",m:"進捗を教えてね",r:"ふつう",h:"post には「知らせる」の意味があります。「何か動きがあったら、私の掲示板に貼っといてね」という感じです。",t:"仕事でもプライベートでも使える万能フレーズ。",ex:[["Keep me posted on the project.","プロジェクトの進み具合を教えてね。"],["Okay, keep me posted!","わかった、また状況教えてね！"]]},
+{p:"heads-up",m:"事前のお知らせ・注意",r:"ふつう",h:"「顔を上げて！前を見て！」という一声。ボールが飛んでくる前に声をかけるような、ちょっとした予告です。",t:"Thanks for the heads-up.(教えてくれてありがとう)とセットで覚えると便利。",ex:[["Thanks for the heads-up.","教えてくれてありがとう。"],["Just a heads-up, the meeting moved to three.","念のため、会議は3時に変更になったよ。"]]},
+{p:"out of the blue",m:"突然・前触れもなく",r:"ふつう",h:"blue は青空のこと。雲ひとつない青空から、いきなりカミナリが落ちてくるイメージです。",t:"連絡・出来事・発言など、なんにでも使えます。",ex:[["She called me out of the blue.","彼女から突然電話がきた。"],["Out of the blue, he quit his job.","彼は突然仕事を辞めた。"]]},
+{p:"once in a blue moon",m:"ごくたまに",r:"ふつう",h:"ブルームーンは、ひと月に2回目の満月のこと。2〜3年に1回しか起きないので「めったにない」になりました。",t:"「年に数回」くらいのゆるい頻度にも使います。",ex:[["I only eat fast food once in a blue moon.","ファストフードはごくたまにしか食べない。"],["He calls me once in a blue moon.","彼はめったに電話してこない。"]]},
+{p:"spill the tea",m:"うわさ話をする・ぶっちゃける",r:"カジュアル",h:"tea はゴシップのスラング。ティーポットからお茶を注ぐように、知ってる話を全部こぼしちゃう。SNSで大人気の表現です。",t:"「で、どうだったの？教えて！」のノリで。",ex:[["Come on, spill the tea!","ねえ、詳しく教えてよ！"],["She spilled the tea about the party.","彼女がパーティーの裏話を全部話してくれた。"]]},
+{p:"spill the beans",m:"秘密をうっかりばらす",r:"カジュアル",h:"袋の豆をひっくり返したら、もう元には戻せない。秘密も一度こぼれたらおしまいです。",t:"spill the tea は「積極的に話す」、こちらは「うっかりばらす」寄り。",ex:[["Who spilled the beans about the surprise?","サプライズのこと、誰がばらしたの？"],["Don't spill the beans!","秘密をばらさないでね！"]]},
+{p:"get cold feet",m:"直前で怖気づく",r:"ふつう",h:"いざ本番、足がすくんで冷たくなる感じ。結婚式の直前に「やっぱり無理かも…」となる場面でおなじみです。",t:"計画していたことを前にして弱気になるとき。",ex:[["I got cold feet before my speech.","スピーチの前に怖気づいちゃった。"],["He got cold feet and canceled the trip.","彼は直前で怖くなって旅行をやめた。"]]},
+{p:"go the extra mile",m:"期待以上にひと手間かける",r:"ふつう",h:"頼まれた1マイルに、自分からもう1マイル足して歩く。言われた以上のことをする、サービス精神の表現です。",t:"人をほめるときにぴったり。",ex:[["She always goes the extra mile for her clients.","彼女はいつもお客さんのために一歩踏み込んだ対応をする。"],["Thanks for going the extra mile.","そこまでしてくれてありがとう。"]]},
+{p:"hit the road",m:"出発する・そろそろ帰る",r:"カジュアル",h:"タイヤ(足)が道路を「たたいて」走り出すイメージ。「そろそろ行くわ」の軽いノリです。",t:"旅行の出発にも、飲み会から帰るときにも。",ex:[["It's late. I should hit the road.","遅くなったし、そろそろ帰らなきゃ。"],["Let's hit the road early tomorrow.","明日は早めに出発しよう。"]]},
+{p:"on the fence",m:"決めかねている",r:"ふつう",h:"塀(fence)の上に座っていて、どっちの庭にも降りられない状態。迷っている様子がそのまま絵になっています。",t:"on the fence about 〜 で「〜について迷っている」。",ex:[["I'm still on the fence about the new job.","新しい仕事のこと、まだ迷ってる。"],["Are you still on the fence?","まだ決めかねてるの？"]]},
+{p:"read the room",m:"空気を読む",r:"ふつう",h:"日本語の「空気を読む」とほぼ同じ！ ただ英語では、読むのは空気じゃなくて「部屋」です。",t:"「空気読んで」と注意するときにも使います。",ex:[["You need to read the room.","空気を読まなきゃ。"],["He didn't read the room and kept joking.","彼は空気を読まずに冗談を言い続けた。"]]},
+{p:"bounce back",m:"立ち直る・回復する",r:"ふつう",h:"ボールが床に当たって、ポーンと跳ね返ってくる。落ち込んでも戻ってこられる弾力のイメージです。",t:"人にも、景気や売上にも使えます。",ex:[["She bounced back quickly after the loss.","彼女は負けたあとすぐに立ち直った。"],["Don't worry. You'll bounce back.","大丈夫、きっと立ち直れるよ。"]]},
+{p:"burned out",m:"燃え尽きている・疲れ果てた",r:"ふつう",h:"ろうそくが最後まで燃えて、芯だけ残った状態。日本語でもバーンアウトと言いますね。",t:"仕事のしすぎで心身ともに疲れたときに。",ex:[["I'm totally burned out this week.","今週は完全に燃え尽きた。"],["Take a break before you get burned out.","燃え尽きる前に休んでね。"]]},
+{p:"I'll pass",m:"遠慮しておく",r:"カジュアル",h:"トランプの「パス」と同じ感覚。断るけど、角が立たない軽さがあります。",t:"Thanks, but… を前につけるとよりやわらかく。",ex:[["Thanks, but I'll pass.","ありがとう、でも遠慮しとく。"],["Karaoke? I think I'll pass tonight.","カラオケ？今夜はやめとくよ。"]]},
+{p:"not my cup of tea",m:"好みじゃない",r:"ふつう",h:"お茶好きのイギリスらしい言い方。「私のお茶じゃない」＝私の趣味じゃない、と相手を否定せずにやんわり伝えます。",t:"否定文で使うのが基本。",ex:[["Horror movies aren't my cup of tea.","ホラー映画は好みじゃないんだ。"],["Jazz isn't really my cup of tea.","ジャズはあまり趣味じゃない。"]]},
+{p:"running late",m:"(予定より)遅れている",r:"ふつう",h:"遅れを取り戻そうと、走っている自分の姿を想像してください。進行形なのがポイントです。",t:"待ち合わせの連絡で毎日のように使われます。",ex:[["Sorry, I'm running late!","ごめん、ちょっと遅れてる！"],["The train is running late today.","今日は電車が遅れている。"]]},
+{p:"catch up",m:"近況を話す",r:"ふつう",h:"会っていない間の話に「追いつく」。久しぶりの友達と会うときの定番です。",t:"catch up over coffee(お茶しながら近況報告)はセットで便利。",ex:[["Let's catch up over coffee.","お茶でもしながら近況を話そう。"],["It was great to catch up with you.","近況を話せて楽しかった。"]]},
+{p:"play it by ear",m:"その場に合わせて決める",r:"ふつう",h:"楽譜を見ずに、耳で聴きながら演奏すること。ダンスで言えば、振り付けなしで音に合わせて踊る感じです。",t:"予定をきっちり決めたくないときに。",ex:[["Let's play it by ear.","その場の流れで決めよう。"],["I don't have a plan. I'll play it by ear.","計画はないんだ。成り行きでいくよ。"]]},
+{p:"take a rain check",m:"また今度にする",r:"ふつう",h:"昔、野球の試合が雨で中止になると、次の試合に使える券(rain check)がもらえました。「今回は無理だけど、次回の券ちょうだい」という断り方です。",t:"「断るけど、また誘ってね」の気持ちが入ります。",ex:[["Can I take a rain check on dinner?","夕食、また今度にしてもいい？"],["I'll have to take a rain check.","今回はまた今度にさせて。"]]},
+{p:"the last straw",m:"我慢の限界を超える最後の一押し",r:"ふつう",h:"重い荷物を背負ったラクダに、わらを1本のせただけで背骨が折れる、ということわざから。小さなことでも、積もり積もった最後の1本です。",t:"That was the last straw. で「もう限界」。",ex:[["That was the last straw.","あれでもう限界だった。"],["Being late again was the last straw.","また遅刻したのが決定打だった。"]]},
+{p:"hit it off",m:"意気投合する",r:"カジュアル",h:"会った瞬間にカチッとはまる。ボールがバットの芯に当たったような、気持ちのいい相性です。",t:"hit it off right away(すぐに意気投合した)の形が多いです。",ex:[["We hit it off right away.","私たちはすぐに意気投合した。"],["I knew they would hit it off.","あの二人は気が合うと思ってた。"]]},
+{p:"hit the sack",m:"寝る",r:"カジュアル",h:"sack は袋のこと。昔の布団はわらを詰めた袋でした。その袋めがけて、バタン！と倒れ込むイメージです。",t:"hit the hay も同じ意味です。",ex:[["I'm tired. I'm going to hit the sack.","疲れた。もう寝るね。"],["I hit the sack early last night.","昨日の夜は早く寝た。"]]},
+{p:"off the top of my head",m:"ぱっと思いつく範囲で",r:"ふつう",h:"頭のてっぺんにあるものだけを取り出す＝調べずに即答する、です。「正確じゃないかもよ」という保険にもなります。",t:"思い出せないときは I can't remember off the top of my head.",ex:[["Off the top of my head, I'd say twenty.","ぱっと思いつく感じだと、20かな。"],["I can't remember off the top of my head.","すぐには思い出せない。"]]},
+{p:"long story short",m:"要するに・手短に言うと",r:"カジュアル",h:"長い話を短くすると…という前置き。話がだらだらしそうなときの切り札で、ドラマでも本当によく聞きます。",t:"文の頭に置いて、結論をズバッと言います。",ex:[["Long story short, I missed the flight.","要するに、飛行機に乗り遅れたの。"],["Long story short, we got the job.","手短に言うと、仕事を取れたんだ。"]]},
+{p:"slipped my mind",m:"うっかり忘れていた",r:"ふつう",h:"頭からスルッと滑り落ちた。「忘れた」と言うより、わざとじゃない感じが出てやわらかくなります。",t:"主語は「忘れたこと」の方。It slipped my mind.",ex:[["Sorry, it slipped my mind.","ごめん、うっかり忘れてた。"],["Her birthday completely slipped my mind.","彼女の誕生日をすっかり忘れていた。"]]},
+{p:"go with the flow",m:"流れに身を任せる",r:"カジュアル",h:"川の流れに逆らわず、プカプカ浮かんでいるイメージ。こだわりすぎない人を表すのにも使います。",t:"ほめ言葉にも、「適当」というニュアンスにもなります。",ex:[["I just go with the flow.","流れに任せてるだけだよ。"],["Relax and go with the flow.","気楽に、流れに任せよう。"]]},
+{p:"have a lot on my plate",m:"やることが山積み",r:"ふつう",h:"お皿に料理が山盛りで、もう何も乗らない状態。忙しさを角を立てずに伝えられます。",t:"頼まれごとを断るときの前置きに便利。",ex:[["I have a lot on my plate right now.","今やることが山積みなんだ。"],["Sorry, I've got a lot on my plate this week.","ごめん、今週は手いっぱいで。"]]},
+{p:"I'm all ears",m:"ちゃんと聞くよ",r:"カジュアル",h:"体じゅうが耳になっている状態。「どうぞ話して、全力で聞いてるよ」というワクワク感があります。",t:"相手が何か言いたそうなときの一言に。",ex:[["Tell me everything. I'm all ears.","全部話して。ちゃんと聞くから。"],["You have an idea? I'm all ears.","アイデアがあるの？聞かせて。"]]},
+{p:"low-key",m:"ひそかに・ちょっと",r:"カジュアル",h:"音楽のキーを低くするように、声のトーンを落として「実はね…」と言う感じ。SNSで頻出の今どき表現です。",t:"文の途中に入れて、気持ちを少し控えめに伝えます。",ex:[["I'm low-key excited about the trip.","実はちょっと旅行が楽しみなんだ。"],["I low-key want to go home.","正直ちょっと帰りたい。"]]},
+{p:"no-brainer",m:"考えるまでもないこと",r:"カジュアル",h:"脳みそ(brain)がなくても分かる。それくらい簡単な判断、という意味です。",t:"It's a no-brainer. で「迷う余地なし」。",ex:[["It's a no-brainer. Take the job.","迷うことないよ。その仕事を受けなよ。"],["Free coffee? That's a no-brainer.","無料のコーヒー？もちろんもらうよ。"]]},
+{p:"a blessing in disguise",m:"不幸中の幸い・災い転じて福",r:"ふつう",h:"変装(disguise)した幸運。最初は不運の顔をしてやってきて、あとで正体がわかります。",t:"振り返って「結果的によかった」と言うときに。",ex:[["Losing that job was a blessing in disguise.","あの仕事を失ったのは、結果的によかった。"],["The rain was a blessing in disguise.","雨が降ったのが、かえってよかった。"]]},
+{p:"back to square one",m:"振り出しに戻る",r:"ふつう",h:"すごろくで、最初のマスに戻されるイメージ。日本語の「振り出しに戻る」とそっくりです。",t:"計画がダメになったときに。",ex:[["The plan failed. Back to square one.","計画は失敗。振り出しに戻った。"],["We're back to square one.","また一からやり直しだ。"]]},
+{p:"think outside the box",m:"枠にとらわれずに考える",r:"ビジネス",h:"「9つの点を一筆書きの4本線で結ぶ」パズルは、点が作る四角(box)の外まで線を伸ばさないと解けません。それが由来とされています。",t:"企画やアイデア出しの場でよく使います。",ex:[["We need to think outside the box.","枠にとらわれずに考えないと。"],["She always thinks outside the box.","彼女はいつも発想が柔軟だ。"]]},
+{p:"let someone off the hook",m:"見逃してあげる",r:"ふつう",h:"釣り針(hook)から魚を外して逃がしてあげる絵です。「今回は許してあげる」という意味に。",t:"off the hook だけで「責任を逃れて」の意味も。",ex:[["I'll let you off the hook this time.","今回は見逃してあげる。"],["Don't let him off the hook so easily.","そんなに簡単に彼を許しちゃだめだよ。"]]},
+{p:"a long shot",m:"望みが薄いこと",r:"ふつう",h:"ゴールから遠く離れたところからのシュート。入ったら奇跡。でも、打ってみる価値はある、というニュアンスです。",t:"It's a long shot, but… で「ダメ元だけど」。",ex:[["It's a long shot, but let's try.","ダメ元だけど、やってみよう。"],["Getting tickets is a long shot.","チケットが取れる望みは薄い。"]]},
+{p:"in a nutshell",m:"簡単に言うと",r:"ふつう",h:"クルミの殻(nutshell)の中に収まるくらい、コンパクトにまとめるとね、という意味です。",t:"long story short より少しきちんとした響き。",ex:[["In a nutshell, we need more time.","簡単に言うと、もっと時間が必要なんだ。"],["That's the story in a nutshell.","ざっくり言うと、そういう話。"]]},
+{p:"get the ball rolling",m:"始める・口火を切る",r:"ふつう",h:"止まっているボールを、最初にコロッと押す。一度転がり出せば、あとは勢いがつきます。",t:"会議の始まりなどに「じゃあ始めましょう」の意味で。",ex:[["Let's get the ball rolling.","さあ、始めよう。"],["I'll get the ball rolling with a quick intro.","まず私から軽く自己紹介して始めますね。"]]},
+{p:"feel blue",m:"気分が沈む",r:"ふつう",h:"英語では青が「憂うつ」の色。音楽のブルースの「ブルー」も同じ気持ちです。",t:"a little blue で「ちょっとブルー」。",ex:[["I'm feeling a little blue today.","今日はちょっと気分が沈んでる。"],["Rainy days make me feel blue.","雨の日は気分が落ち込む。"]]},
+{p:"wing it",m:"ぶっつけ本番でやる",r:"カジュアル",h:"準備なしで、羽(wing)まかせに飛び立つイメージ。play it by ear より「準備してない」感じが強めです。",t:"自虐っぽく使うことが多いです。",ex:[["I didn't prepare. I'll just wing it.","準備してない。ぶっつけ本番でいくよ。"],["Don't wing the presentation!","プレゼンをぶっつけ本番でやらないでね！"]]},
+{p:"ring a bell",m:"聞き覚えがある",r:"ふつう",h:"頭の中でチリンと鐘が鳴る。「あれ、なんか知ってる気がする…」という瞬間です。",t:"思い出せないときは doesn't ring a bell.",ex:[["That name rings a bell.","その名前、聞き覚えがある。"],["Does this song ring a bell?","この曲、聞き覚えある？"]]},
+{p:"through thick and thin",m:"いいときも悪いときも",r:"ふつう",h:"森の茂った所(thick)も、木がまばらな所(thin)も、一緒に歩いていく。どんな道でも離れない、という意味になりました。",t:"友情や夫婦の絆を語るときに。",ex:[["She stood by me through thick and thin.","彼女はどんなときも私の味方でいてくれた。"],["Good friends stick together through thick and thin.","いい友達はどんなときも一緒だ。"]]},
+{p:"have someone's back",m:"味方でいる・守る",r:"カジュアル",h:"自分の背中は、自分では守れません。そこを任せられる相棒、という信頼の表現です。",t:"I've got your back. は「私がついてるよ」の定番。",ex:[["Don't worry. I've got your back.","心配しないで。私がついてるよ。"],["Thanks for having my back.","味方でいてくれてありがとう。"]]},
+{p:"the elephant in the room",m:"みんな気づいているのに触れない問題",r:"ふつう",h:"部屋の真ん中に象がいるのに、全員が見て見ぬふりをしている…というシュールな絵です。",t:"address the elephant in the room で「あえてその話をする」。",ex:[["Let's talk about the elephant in the room.","みんなが避けてる問題について話そう。"],["Nobody mentioned the elephant in the room.","誰もその問題には触れなかった。"]]},
+{p:"easier said than done",m:"言うのは簡単だけど…",r:"ふつう",h:"日本語の「言うは易く行うは難し」とほぼ同じ！ 世界共通の悩みです。",t:"アドバイスへの返しとしてよく使います。",ex:[["Just relax? Easier said than done.","リラックスして？言うのは簡単だけどね。"],["Saving money is easier said than done.","貯金は言うほど簡単じゃない。"]]},
+{p:"treat yourself",m:"自分にご褒美をあげる",r:"カジュアル",h:"treat は「ごちそうする」。自分で自分にごちそうする、という発想です。",t:"treat myself to 〜 で「自分へのご褒美に〜する」。",ex:[["You worked hard. Treat yourself!","頑張ったね。自分にご褒美をあげて！"],["I treated myself to a nice dinner.","自分へのご褒美に、いいディナーを食べた。"]]},
+{p:"me time",m:"自分だけの時間",r:"カジュアル",h:"「わたし時間」そのまんま。誰にも邪魔されない、自分を整えるための時間です。",t:"I need some me time. で「ひとりの時間がほしい」。",ex:[["I need some me time tonight.","今夜はひとりの時間がほしい。"],["Sunday mornings are my me time.","日曜の朝は私だけの時間。"]]},
+{p:"on the same wavelength",m:"波長が合う",r:"ふつう",h:"ラジオの周波数(wavelength)がぴったり合っている状態。何も言わなくても通じ合う感じです。",t:"on the same page は「認識」、こちらは「感覚・相性」。",ex:[["We're on the same wavelength.","私たち、波長が合うね。"],["I feel like we're on the same wavelength.","なんだか同じ感覚を持ってる気がする。"]]},
+{p:"step up",m:"一歩前に出る・責任を果たす",r:"ふつう",h:"列から一歩前に出て「私がやります」と手を挙げるイメージ。いざというときに頑張る姿です。",t:"step up to the plate(打席に立つ)という言い方も。",ex:[["Someone needs to step up and lead.","誰かが前に出てリードしないと。"],["She really stepped up this year.","彼女は今年すごく成長した。"]]}
+];
+
+// 日付から「今日のidiom」を決める(全部を一巡するまで同じものは出ない)
+function idiomDateKey(d=new Date()){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function idiomOrder(){
+  // 毎回同じ順番になるよう、決まった種で並べ替える
+  const a=IDIOMS.map((_,i)=>i); let s=20261014;
+  const rnd=()=>{s=(s*1103515245+12345)%2147483648;return s/2147483648;};
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+const IDIOM_ORDER=idiomOrder();
+function todaysIdiom(){
+  const d=new Date(); const day=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000);
+  return IDIOMS[IDIOM_ORDER[day%IDIOMS.length]];
+}
+const IDIOM_DONE_KEY='lilac_idiom_done';
+function idiomDoneToday(){try{return localStorage.getItem(IDIOM_DONE_KEY)===idiomDateKey();}catch{return false;}}
+
+function renderTodayIdiom(){
+  const it=todaysIdiom(); if(!it)return;
+  const d=new Date();
+  document.getElementById('ti-date').textContent=`TODAY'S IDIOM · ${d.getMonth()+1}/${d.getDate()}`;
+  document.getElementById('ti-phrase').textContent=it.p;
+  document.getElementById('ti-meaning').textContent=it.m;
+  document.getElementById('ti-done').classList.toggle('hidden',!idiomDoneToday());
+  document.getElementById('ti-go').textContent=idiomDoneToday()?'もう一度話す →':'解説を読んで話す →';
 }
 
-async function startIdiom(){
-  // iPhoneの読み上げ準備は、タップ直後(待ち時間の前)にしておく必要がある
-  unlockSpeech();
-  const btn=document.getElementById('idiom-start-btn');
-  const lbl=document.getElementById('idiom-start-lbl');
-  btn.disabled=true; lbl.textContent='問題を作成中…(10秒ほど)';
-  const seen=getIdiomSeen();
-  const prompt=`あなたは英語教師です。2020年代のネイティブの日常会話(友人・家族・職場・SNS・ドラマ)で、今も実際によく使われているidiomや句動詞を${IDIOM_COUNT}個選び、スピーキング練習問題を作ってください。
-
-【選び方】
-・今の会話で普通に使われる表現だけを選ぶ。古い・教科書的で実際はほぼ使わない表現(例: raining cats and dogs のような古風なもの)は避ける
-・idiomと句動詞を混ぜ、カジュアル寄りを中心に、職場で使える表現も2〜3個入れる
-・下品・攻撃的なスラングは入れない
-・次の表現は最近出題済みなので使わない: ${seen.length?seen.join(', '):'(なし)'}
-
-【各問題の作り方】
-・phrase: 表現そのもの(例: call it a day)
-・meaning: 日本語の意味(15字以内)
-・nuance: どんな場面・相手に使うか、ニュアンスの説明(日本語50字以内)
-・register: "カジュアル" / "ふつう" / "ビジネス" のどれか
-・example_en / example_jp: その表現を使った自然な会話例文と和訳(ドラマの1シーンのような短い一言。実在の作品のセリフは使わず、オリジナルで作る)
-・jp: 学習者が英語に訳して話す日本語の文(例文とは別の場面。自然な日本語の話し言葉)
-・en: jpをその表現を使って英訳した模範解答(12語以内、自然な口語)
-
-JSON配列のみで返答: [{"phrase":"","meaning":"","nuance":"","register":"","example_en":"","example_jp":"","jp":"","en":""}]`;
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:3000,messages:[{role:'user',content:prompt}]})
-    });
-    const data=await res.json();
-    if(!res.ok) throw new Error(data.error?.message||('HTTP '+res.status));
-    const text=data.content?.[0]?.text||'';
-    const s=text.indexOf('['), e=text.lastIndexOf(']');
-    if(s<0||e<s) throw new Error('形式エラー');
-    const items=JSON.parse(text.slice(s,e+1))
-      .filter(it=>it&&it.phrase&&it.jp&&it.en)
-      .slice(0,IDIOM_COUNT);
-    if(!items.length) throw new Error('問題が空でした');
-    addIdiomSeen(items.map(it=>it.phrase));
-    queue=items.map(it=>({
-      kind:'idiom',chapter:0,lesson:0,title:'Idiom',
-      jp:it.jp,en:it.en,phrase:it.phrase,meaning:it.meaning||'',nuance:it.nuance||'',
-      register:it.register||'',exampleEn:it.example_en||'',exampleJp:it.example_jp||''
-    }));
-    beginQuiz('Idiom '+queue.length+'問',false);
-  }catch(err){
-    console.log('idiom error',err);
-    showToast('問題を作れませんでした。通信やAPIキーを確認してください');
-  }
-  btn.disabled=false; lbl.textContent='Idiom 10問で始める';
+function startIdiom(){
+  const it=todaysIdiom(); if(!it)return;
+  queue=it.ex.map(([en,jp])=>({
+    kind:'idiom',chapter:0,lesson:0,title:'Idiom',jp,en,
+    phrase:it.p,meaning:it.m,register:it.r,hook:it.h,tip:it.t||''
+  }));
+  beginQuiz("今日のidiom");
 }
 
+let idiomMoreOpen=true; // 解説は最初は開いておく(閉じたらその日の間は閉じたまま)
 function renderIdiomCard(q){
   const card=document.getElementById('idiom-card');
   const task=document.getElementById('idiom-task');
@@ -1042,35 +1089,27 @@ function renderIdiomCard(q){
   card.classList.toggle('hidden',!isIdiom);
   task.classList.toggle('hidden',!isIdiom);
   document.getElementById('quiz').classList.toggle('idiom-mode',!!isIdiom);
-  // 新しい問題では詳細をたたみ、いちばん上から表示する
-  document.getElementById('idiom-more').classList.add('hidden');
-  document.getElementById('idiom-more-btn').textContent='ニュアンス・例文 ▼';
   const sc=document.querySelector('.quiz-scroll'); if(sc) sc.scrollTop=0;
   if(!isIdiom)return;
   document.getElementById('idiom-phrase').textContent=q.phrase;
   const reg=document.getElementById('idiom-reg');
   reg.textContent=q.register; reg.style.display=q.register?'':'none';
   document.getElementById('idiom-meaning').textContent=q.meaning;
-  document.getElementById('idiom-nuance').textContent=q.nuance;
-  document.getElementById('idiom-ex-en').textContent=q.exampleEn;
-  document.getElementById('idiom-ex-jp').textContent=q.exampleJp;
+  document.getElementById('idiom-hook').textContent=q.hook;
+  const tip=document.getElementById('idiom-tip');
+  tip.textContent=q.tip?'💡 '+q.tip:''; tip.style.display=q.tip?'':'none';
+  setIdiomMore(idiomMoreOpen);
   const saved=getVocab().some(v=>v.word.toLowerCase()===q.phrase.toLowerCase());
   const sb=document.getElementById('idiom-save-btn');
   sb.textContent=saved?'✓ 保存済み':'＋ 単語帳へ'; sb.disabled=saved;
 }
 
-function toggleIdiomMore(){
-  const more=document.getElementById('idiom-more');
-  const open=more.classList.toggle('hidden')===false;
-  document.getElementById('idiom-more-btn').textContent=open?'ニュアンス・例文 ▲':'ニュアンス・例文 ▼';
+function setIdiomMore(open){
+  idiomMoreOpen=open;
+  document.getElementById('idiom-more').classList.toggle('hidden',!open);
+  document.getElementById('idiom-more-btn').textContent=open?'解説をとじる ▲':'解説を見る ▼';
 }
-
-// 例文の読み上げはボタンを押したときだけ(録音中なら止めてから読む)
-function speakIdiomExample(){
-  const q=queue[qIdx]; if(!q||!q.exampleEn)return;
-  if(isListening){stopListening();resetMicUI();currentTranscript='';showTranscript('');}
-  ttsEnabled=true; speakText(q.exampleEn);
-}
+function toggleIdiomMore(){setIdiomMore(!idiomMoreOpen);}
 
 function idiomJudgePrompt(q,answer){
   return `英語スピーキング練習(idiom・句動詞の練習)の採点をしてください。
@@ -1521,6 +1560,7 @@ function retryFromResult(){
 
 function showComplete(){
   stopListening();
+  if(queue[0]&&queue[0].kind==='idiom'){try{localStorage.setItem(IDIOM_DONE_KEY,idiomDateKey());}catch{}}
   const rate=queue.length?Math.round(correctCount/queue.length*100):0;
   document.getElementById('s-correct').textContent=correctCount;
   document.getElementById('s-total').textContent=queue.length;
@@ -1562,6 +1602,7 @@ function goHome(){
   stopListening();
   document.getElementById('result-overlay').classList.add('hidden');
   updateVocabBadge();
+  renderTodayIdiom();
   show('home');
 }
 
@@ -1736,6 +1777,7 @@ function confirmClearVocab(){
 
 buildHome();
 updateVocabBadge();
+renderTodayIdiom();
 </script>
 </body>
 </html>
