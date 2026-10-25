@@ -1191,37 +1191,6 @@ const SFX_TEST=HASH.includes('sfx');
 // #fresh を付けて開いたときだけ: 判定の声をしゃべり、そのかわり問題ごとに認識を新しく作り直す(実験)
 // 付けないとき: iPhoneでは判定の声をしゃべらない(しゃべったあとに認識が止まる症状が出たため)
 const FRESH_TEST=HASH.includes('fresh');
-
-// ── 再読み込み方式(iOS 27 の不具合対策) ──────────────────
-// iOS 27 では、ページを開いて最初の1回しか音声認識が音を拾わない(WebKit Bug 321436)。
-// そこで iPhone では「1回認識したら、次に認識するときはページを読み込み直す」。
-// どの問題か・正解数は sessionStorage に預けて、読み込み後に同じ画面へ戻す。
-// Appleが直したら、URLの末尾に #noreload を付けて開くと以前の動き(読み込み直さない)に戻る。
-const RELOAD_MODE=IS_IOS&&!HASH.includes('noreload');
-const RESUME_KEY='lilac_resume';
-let srUsed=false; // このページで、もう認識を1回使ったか
-function reloadTo(idx){
-  try{
-    sessionStorage.setItem(RESUME_KEY,JSON.stringify({
-      title:document.getElementById('quiz-title-lbl').textContent,
-      queue,qIdx:idx,correctCount,qJudged,qCorrect
-    }));
-  }catch(e){}
-  dbg('reload → Q'+(idx+1));
-  location.reload();
-}
-function resumeAfterReload(){
-  let s=null;
-  try{s=JSON.parse(sessionStorage.getItem(RESUME_KEY)||'null');sessionStorage.removeItem(RESUME_KEY);}catch(e){}
-  if(!s||!Array.isArray(s.queue)||!s.queue.length)return;
-  queue=s.queue; correctCount=s.correctCount||0; qIdx=s.qIdx||0;
-  show('quiz');
-  document.getElementById('quiz-title-lbl').textContent=s.title||'';
-  loadQuestion(false); // マイクはタップで開始(iPhoneはタップしないとマイクを使わせてくれない)
-  qJudged=!!s.qJudged; qCorrect=!!s.qCorrect; // 「もう一度」で正解数が二重にならないように
-  dbg('resumed Q'+(qIdx+1));
-}
-
 function keepRecordMode(){
   // 音の扱いを「録音と再生の両方」に固定する(Safariが対応していれば)
   try{ if(navigator.audioSession){ navigator.audioSession.type='play-and-record'; } }catch(e){}
@@ -1291,18 +1260,6 @@ function getIOSRecognition(){
     // ここで区切れた＝次に話す部分は新しい文
     if(currentTranscript) segBreak=true;
     if(srPendingStart){srPendingStart=false;iosStart();return;}
-    // 再読み込み方式: 同じページで再開しても音を拾わないので、ここで区切る
-    //  - 文字が取れていれば、そのまま判定へ
-    //  - 何も取れていなければ待機に戻す(次にタップしたらページを読み込み直す)
-    if(RELOAD_MODE&&isListening&&!isJudging){
-      if(currentTranscript){dbg('ended → judge');stopAndJudge();}
-      else{
-        dbg('ended with no text');
-        stopListening(); setMicState('idle');
-        document.getElementById('mic-hint').textContent='聞き取れませんでした。タップでもう一度';
-      }
-      return;
-    }
     // 話している途中で区切れたら、少し待って同じインスタンスで再開
     if(isListening&&!isJudging){
       setTimeout(()=>{if(isListening&&!isJudging&&!srActive)iosStart();},200);
@@ -1319,7 +1276,7 @@ function iosStart(){
     try{r.stop();}catch(e){}
     return;
   }
-  try{r.start();srActive=true;srUsed=true;dbg('start() called');}
+  try{r.start();srActive=true;dbg('start() called');}
   catch(e){dbg('start() threw '+e.name);}
 }
 
@@ -1358,9 +1315,6 @@ function startListening(){
   const session=++recordingSession;
 
   if(IS_IOS){
-    // 再読み込み方式: このページで一度認識を使っていたら、読み込み直してから始める
-    // (次の問題・リトライ・「もう一度」・別のレッスン開始、すべてここを通る)
-    if(RELOAD_MODE&&srUsed){isListening=false;reloadTo(qIdx);return;}
     if(SFX_TEST)keepRecordMode();
     dbg('startListening audioSession='+(navigator.audioSession?navigator.audioSession.type:'none')+(FRESH_TEST?' fresh':''));
     if(FRESH_TEST&&recognition){
@@ -1856,7 +1810,6 @@ function confirmClearVocab(){
 buildHome();
 updateVocabBadge();
 renderTodayIdiom();
-resumeAfterReload();
 </script>
 </body>
 </html>
