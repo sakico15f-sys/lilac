@@ -1188,6 +1188,9 @@ const HASH=location.hash.toLowerCase();
 const DEBUG=HASH.includes('debug');
 // #sfx を付けて開いたときだけ、iPhoneでも効果音を鳴らす実験をする
 const SFX_TEST=HASH.includes('sfx');
+// #fresh を付けて開いたときだけ: 判定の声をしゃべり、そのかわり問題ごとに認識を新しく作り直す(実験)
+// 付けないとき: iPhoneでは判定の声をしゃべらない(しゃべったあとに認識が止まる症状が出たため)
+const FRESH_TEST=HASH.includes('fresh');
 function keepRecordMode(){
   // 音の扱いを「録音と再生の両方」に固定する(Safariが対応していれば)
   try{ if(navigator.audioSession){ navigator.audioSession.type='play-and-record'; } }catch(e){}
@@ -1313,7 +1316,15 @@ function startListening(){
 
   if(IS_IOS){
     if(SFX_TEST)keepRecordMode();
-    dbg('startListening audioSession='+(navigator.audioSession?navigator.audioSession.type:'none'));
+    dbg('startListening audioSession='+(navigator.audioSession?navigator.audioSession.type:'none')+(FRESH_TEST?' fresh':''));
+    if(FRESH_TEST&&recognition){
+      // 前の認識を完全に捨てて、新しく作る
+      const old=recognition;
+      old.onstart=old.onaudiostart=old.onspeechstart=old.onresult=old.onerror=old.onend=null;
+      try{old.abort();}catch(e){}
+      recognition=null; srActive=false; srPendingStart=false;
+      dbg('old recognition discarded');
+    }
     iosStart();
     setMicState('listening');
     document.getElementById('retry-btn').disabled=false;
@@ -1384,7 +1395,7 @@ function stopAndJudge(){
 
 function onMicTap(){
   if(isJudging||judgePending)return;
-  if(isListening){stopAndJudge();unlockSpeech();}
+  if(isListening){stopAndJudge();if(!IS_IOS||FRESH_TEST)unlockSpeech();}
   else{retryQ();}
 }
 
@@ -1538,7 +1549,8 @@ function showResult(level,userAns,modelAns,comment){
   dbg(playSfx?'effect sound played':'effect sound skipped');
   // iPhoneでは効果音の代わりに、読み上げ機能で判定をしゃべる(読み上げは認識に影響しないことを確認済み)
   const verdictWord=level==='perfect'?'Excellent!':level==='good'?'Good!':'Keep going!';
-  if(iosNoTTS&&!SFX_TEST){speakText(verdictWord);dbg('speak verdict '+verdictWord);}
+  if(iosNoTTS&&FRESH_TEST){speakText(verdictWord);dbg('speak verdict '+verdictWord);}
+  else if(iosNoTTS) dbg('verdict voice skipped');
   // 非iOSでは少し遅らせて模範解答を読み上げ
   if(!iosNoTTS){
     setTimeout(()=>speakText(modelAns), 700);
