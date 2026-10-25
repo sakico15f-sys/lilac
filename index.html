@@ -951,7 +951,7 @@ function startRandom(){
 // autoStart=false のときは、マイクボタンを押すまで録音を始めない
 // (Idiomモードは問題の生成を待つ間にタップ操作の扱いが切れるため、iPhoneで確実に動くように1問目だけ手動開始にする)
 function beginQuiz(title,autoStart=true){
-  unlockSpeech();
+  // 読み上げのアンロックはここではしない(直後に始まる音声認識とぶつかり、認識に音が届かなくなるため)
   qIdx=0; correctCount=0;
   show('quiz');
   document.getElementById('quiz-title-lbl').textContent=title;
@@ -1384,7 +1384,7 @@ function stopAndJudge(){
 
 function onMicTap(){
   if(isJudging||judgePending)return;
-  if(isListening){stopAndJudge();}
+  if(isListening){stopAndJudge();unlockSpeech();}
   else{retryQ();}
 }
 
